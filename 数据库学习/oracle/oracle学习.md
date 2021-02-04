@@ -393,6 +393,8 @@ WHERE u.DELETE_FLAG = '0' AND r.DELETE_FLAG = '0' AND u.ID in (?)
 
 *拼接函数:将v拼接到一起并以“,”分隔*
 
+不推荐使用，wm_concat和distinct、to_char或group使用可能出现ORA-22922: 不存在的 LOB 值解决办法，推荐使用listagg函数
+
 ```sql
 --复杂sql示例：
 SELECT PROJECT_NUM,
@@ -456,8 +458,79 @@ SELECT PROJECT_NUM,
           DECLARE_BATCH_NAME,
           IS_FUND;
 ```
-***
+### 4. listagg
+
+wm_concat的升级版，Oracle官方推荐使用，将列以行的形式排列，可设置分隔关键字，及按字段排序
+
+```sql
+--listagg(XXX, ',') within group(order by YYY) 将XXX以,分割并按YYY聚合排序
+SELECT t.advancebatchid,
+       (SELECT BATCHNAME
+          FROM t_scholarshipadvance_batch
+         WHERE advancebatchid = t.advancebatchid) batchname,
+       t.batchyear,
+       t.batchmonth,
+       (SELECT PEOPLENUMBER
+          FROM t_scholarshipadvance_batch
+         WHERE advancebatchid = t.advancebatchid) usercount,
+       listagg(t.CURRENTAMOUNT || t.CURRENCY || t.PERSONNUM || '人', ',') within group(order by t.CURRENCY, t.CURRENTAMOUNT, t.PERSONNUM) currentAndAmountAndNum
+  FROM (SELECT batch.advancebatchid,
+               batch.batchyear,
+               batch.batchmonth,
+               release.CURRENCY,
+               sum(release.CURRENTAMOUNT) CURRENTAMOUNT,
+               count(release.studentid) as personnum
+          FROM t_scholarshipadvance_batch batch
+          LEFT JOIN t_scholarshipadvance_batch child
+            ON child.SUPERIORBATCHID = batch.ADVANCEBATCHID
+          LEFT JOIN t_scholarshipadvance_releasere release
+            ON child.advancebatchid = release.advancebatchid
+         WHERE EXISTS (SELECT 1
+                  FROM t_advance_auditflowrecord taa
+                 WHERE taa.auditnode = '4'
+                   AND taa.advancebatchid = batch.advancebatchid)
+           AND batch.BATCHNUM IS NOT NULL
+           AND batch.batchstate = 6
+           AND batch.ifueserful = 1
+           AND batch.IFMERGEBATCH = '1'
+           AND batch.SUPERIORBATCHID IS NULL
+         GROUP BY batch.advancebatchid,
+                  batch.batchyear,
+                  batch.batchmonth,
+                  release.CURRENCY
+        UNION
+        SELECT batch.advancebatchid,
+               batch.batchyear,
+               batch.batchmonth,
+               release.CURRENCY,
+               sum(release.CURRENTAMOUNT) CURRENTAMOUNT,
+               count(release.studentid) as personnum
+          FROM t_scholarshipadvance_batch batch
+          LEFT JOIN t_scholarshipadvance_releasere release
+            ON batch.advancebatchid = release.advancebatchid
+         WHERE EXISTS (SELECT 1
+                  FROM t_advance_auditflowrecord taa
+                 WHERE taa.auditnode = '4'
+                   AND taa.advancebatchid = batch.advancebatchid)
+           AND batch.BATCHNUM IS NOT NULL
+           AND batch.batchstate = 6
+           AND batch.ifueserful = 1
+           AND batch.IFMERGEBATCH = '0'
+           AND batch.SUPERIORBATCHID IS NULL
+         GROUP BY batch.advancebatchid,
+                  batch.batchyear,
+                  batch.batchmonth,
+                  release.CURRENCY) t
+ where t.batchyear = ?
+   and t.batchmonth = ?
+ GROUP BY t.advancebatchid, t.batchyear, t.batchmonth
+ ORDER BY t.batchyear desc, t.batchmonth desc
+```
+
+------
+
 # 四、sql优化（关系型数据库通用）
+
 ## 1. join、in、exists 效率比较
 在sql中，join /in /exists 都可以用来实现，“**查询A表中在（或者不在）B表中的记录**”，这种查询，在查询的两个表大小相当的情况下，3种查询方式的执行时间通常是：
 **exists <= in <= join** 
