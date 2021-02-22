@@ -395,6 +395,8 @@ WHERE u.DELETE_FLAG = '0' AND r.DELETE_FLAG = '0' AND u.ID in (?)
 
 不推荐使用，wm_concat和distinct、to_char或group使用可能出现ORA-22922: 不存在的 LOB 值解决办法，推荐使用listagg函数
 
+注意：wm_concat聚合的字段是**无序**的，哪怕你之前排序了也没用
+
 ```sql
 --复杂sql示例：
 SELECT PROJECT_NUM,
