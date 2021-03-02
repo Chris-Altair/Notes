@@ -364,7 +364,29 @@ select sys_guid() from dual; --32位uuid大写
 select lower(sys_guid()) from dual; --32位uuid小写
 ```
 ***
+### 7. substr(str, len)
+
+*截取字符串，len>0表示从左截取，len<0表示从右截取*
+
+```sql
+select substr('aaabbb',3) from dual;
+```
+
+------
+
+### 8. concat(str1, str2)
+
+*拼接字符串，***只支持2个参数**
+
+```sql
+select concat('a','b') from dual;
+select 'a'||'b' from dual; --这种方式也可以拼接字符串
+```
+
+------
+
 ## Oracle聚合函数
+
 ### 1. count() 
 
 *统计数量*（**注：null不计入数量**）
@@ -394,6 +416,8 @@ WHERE u.DELETE_FLAG = '0' AND r.DELETE_FLAG = '0' AND u.ID in (?)
 *拼接函数:将v拼接到一起并以“,”分隔*
 
 不推荐使用，wm_concat和distinct、to_char或group使用可能出现ORA-22922: 不存在的 LOB 值解决办法，推荐使用listagg函数
+
+注意：wm_concat聚合的字段是**无序**的，哪怕你之前排序了也没用
 
 ```sql
 --复杂sql示例：
