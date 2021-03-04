@@ -52,7 +52,19 @@ public abstract class BaseCase extends AbstractTestNGSpringContextTests {}
     }
 ```
 
-### 4.@Test注解
+### 4.@BeforeClass和@AfterClass
+
+​	@BeforeClass：测试类第一个测试方法执行之前
+
+​	@AfterClass：测试类最后一个测试方法执行完后
+
+### 5.@BeforeMethod和@AfterMethod
+
+​	@BeforeMethod：每个测试方法执行之前
+
+​	@AfterMethod：每个测试方法执行之后
+
+### 6.@Test注解
 
 ​	修饰测试方法，该注解属性如下：
 
@@ -125,7 +137,7 @@ private UserService userService;
 @Test(dependsOnMethods={"testAdd", "testDivide"}, ignoreMissingDependencies = true)
 ```
 
-### 5.maven测试插件配置
+### 7.maven测试插件配置
 
 ​	mvn install 会在本地maven仓库生成依赖包
 ​    pom文件依赖设置score：test
@@ -152,7 +164,7 @@ maven配置testng
         </plugin>
 ```
 
-### 6.testng.xml配置
+### 8.testng.xml配置
 
 ​	idea可安装testng插件，直接右键执行testng.xml
 
@@ -219,7 +231,7 @@ maven配置testng
 
 ```
 
-### 7.testng思考总结
+### 9.testng思考总结
 
 默认带返回值的测试方法在xml里不会执行，可能要设置allow-return-values
         观点；
@@ -336,10 +348,10 @@ spring.datasource.data = classpath:db/data.sql #初始化表数据
 ```
 
 	2. h2支持事务， AbstractTestNGSpringContextTests不启用事务AbstractTransactionalTestNGSpringContextTests开启事务，
-        继承后默认开启事务，也可以使用@Rollback来控制测试方法是否启用事务，@Rollback(true)开启事务
-        **注：事务只限于@test方法级别，@beforeClass插入的数据，永久插入,目前只能在@AfterClass手动删除**
- 	3.  启用不同的配置文件 @ActiveProfiles("testng") 启用application-testng.yml配置文件
-             开启springtest环境@SpringBootTest(classes = XXXApplication.class)
+	    继承后默认开启事务，也可以使用@Rollback来控制测试方法是否启用事务，@Rollback(true)开启事务
+	    **注：事务只限于@test方法级别，@beforeClass插入的数据，永久插入,目前只能在@AfterClass手动删除**
+	3.  启用不同的配置文件 @ActiveProfiles("testng") 启用application-testng.yml配置文件
+	         开启springtest环境@SpringBootTest(classes = XXXApplication.class)
 
 ## 附录：pom配置
 
