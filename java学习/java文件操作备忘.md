@@ -1,14 +1,14 @@
-文件分隔符，屏蔽操作系统差异：File.separator
+1. 文件分隔符，屏蔽操作系统差异：File.separator
 
-file.deleteOnExit() 删除文件声明，并不立刻删除，jvm停止时才删除
+2. file.deleteOnExit() 删除文件声明，并不立刻删除，jvm停止时才删除
 
-文件流最后必须要close()，若没有close，可能出现**文件句柄被占用**的情况，这样其他进程就无法修改该文件了
+3. 文件流最后必须要close()，若没有close，可能出现**文件句柄被占用**的情况，这样其他进程就无法修改该文件了
 
-​	file1.delete())返回false，文件存在但删不掉,发现被java占用经测试发现文件流未关闭，结论手动创建文件流一定要close
+   ​	file1.delete())返回false，文件存在但删不掉,发现被java占用经测试发现文件流未关闭，结论手动创建文件流一定要close
 
-文件流：https://www.zhihu.com/question/67535292
+   ​	文件流：https://www.zhihu.com/question/67535292
 
-java比较2个文件是否相同，通过文件内容的md5判断，相同则相当大概率相同，不相同则一定不同
+4. java比较2个文件是否相同，通过文件内容的md5判断，相同则相当大概率相同，不相同则一定不同
 
 ```java
 /**
@@ -41,13 +41,10 @@ java比较2个文件是否相同，通过文件内容的md5判断，相同则相
     }
 ```
 
-
-
-java压缩文件操作
-
-1. new ZipOutputStream(new FileOutputStream(zippath))
-2. zos.putNextEntry(new ZipEntry(file.getName())) //按要压缩的文件循环
-3. zos.write //按要压缩的文件循环
+5. java压缩文件操作
+   - new ZipOutputStream(new FileOutputStream(zippath))
+   - zos.putNextEntry(new ZipEntry(file.getName())) //按要压缩的文件循环
+   - zos.write //按要压缩的文件循环
 
 ```java
 public static final int BUFFER_SIZE = 1024 * 8;
