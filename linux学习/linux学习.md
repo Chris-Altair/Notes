@@ -30,7 +30,32 @@ find <path> -name <文件名> | -cmin <+|-分钟> | -ctime <+|-天数> | -type <
 tail -f <filename>
 ```
 
-### 2.文件内容操作
+### 2. 压缩及解压操作
+
+```bash
+#tar压缩文件
+tar -czvf <目标文件>.tar.gz <源文件或文件夹>
+#tar解压文件
+tar -xzvf <目标文件>.tar.gz
+#查看tar内文件
+tar -tzvf <目标文件>.tar.gz
+
+-c：压缩包
+-x：解压包
+-t或--list 列出备份文件的内容
+
+-z或--gzip或--ungzip 通过gzip指令处理备份文件，经处理的备份文件会以.gz后缀结尾
+-v或--verbose：显示打包文件过程
+-f：指定压缩包的文件名；
+------------------------------------------------------
+#zip unzip
+#压缩zip：
+zip -r xxx.zip ./* #（压缩当前路径下的所有文件及目录）
+#解压zip到指定目录：
+unzip -o -d <path> xxx.zip
+```
+
+### 3.文件内容操作
 
 ```bash
 #向文件输入内容，-e：支持转义字符
@@ -62,7 +87,7 @@ grep <rule> <filename>
 #sed 学习参考：https://coolshell.cn/articles/9104.html
 ```
 
-### 3.文件及目录权限操作
+### 4.文件及目录权限操作
 
 linux用户分为：当前用户u，组内用户g，组外用户o
 每种的权限可用三位二进制表示：000～111，从左到右每位分别表示，可读r，可写w，可执行x
@@ -74,7 +99,7 @@ chmod -R 777 <dirpath>
 chmod u=rwx,g+r+w,o-x <filename>
 ```
 
-### 4.进程查看及操作
+### 5.进程查看及操作
 
 ```bash
 #top命令，查看系统进程资源占用情况
@@ -330,3 +355,13 @@ lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
 ### 2. /proc/<pid>
 
 伪文件系统，可查看系统执行的进程信息
+
+## 四、shell相关
+
+```bash
+#通过 cat 命令来查看当前 Linux 系统的可用 Shell
+cat /etc/shells
+#查看系统默认shell
+echo $SHELL
+```
+
