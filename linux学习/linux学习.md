@@ -291,7 +291,10 @@ hosts —— the static table lookup for host name（**主机名查询静态表*
 
 #### ② /etc/init.d
 
-系统启动时执行的脚本路径，service就是调的这个
+​	/etc/init.d基本上只做一件事，但是这件事是为你的整个系统服务的，所以init.d目录非常重要。这个目录里面包含了一系列系统里面服务的开启和停止的脚本
+　为了能够使用init.d目录下的脚本，你需要有root或者sudo权限。
+
+​	系统启动时执行的脚本路径，service就是调的这个
 
 ```bash
 #下面两者等价
@@ -301,9 +304,20 @@ service XXX start|stop|restart|reload|status
 
 注：比service更高级的命令systemctl，**service命令本身不支持开机启动和禁用，但systemctl支持**
 
-#### ③ /etc/profile.d
+#### ③ /etc/rc.local
 
-登录及切换用户时执行/etc/profile，profile会循环执行profile.d内的脚本
+​	/etc/rc.local在系统初始化脚本之后运行，所以你可以放心的将你想在系统启动后执行的脚本放在里面。通常我会将nfs的挂载脚本放在里面。同时也是一个放调试脚本的好地方。比如，有一次我的系统中得samba服务无法正常启动，尽管检查确认本该随着系统一起启动的。通常我也会话大量的时间去寻找原因，仅仅是在rc.local文件里下写下这么一行
+　　/etc/init.d/samba start
+　　samba无法启动的问题就解决了
+
+#### ④ /etc/profile.d
+
+​	当一个用户登录Linux系统或使用su -命令切换到另一个用户时，也就是Login shell 启动时，首先要确保执行的启动脚本就是 /etc/profile 。
+​	敲黑板：**只有Login shell 启动时才会运行 /etc/profile 这个脚本，而Non-login shell 不会调用这个脚本。**
+​	注意的是在/etc/profile 文件中设置的变量是全局变量
+​	在/etc/profile.d 目录中存放的是一些应用程序所需的启动脚本，其中包括了颜色、语言、less、vim及which等命令的一些附加设置。
+
+这些脚本文件之所以能够 被自动执行，是因为在/etc/profile 中使用一个for循环语句来调用这些脚本。而这些脚本文件是用来设置一些变量和运行一些初始化过程的。
 
 ```bash
 #profile脚本内容
@@ -333,28 +347,82 @@ if [ -d /etc/profile.d ]; then
 fi
 ```
 
-#### ④ /etc/passwd
+#### ⑤ /etc/passwd
 
 查看系统所有的用户
 
 ```bash
 root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
-bin:x:2:2:bin:/bin:/usr/sbin/nologin
-sys:x:3:3:sys:/dev:/usr/sbin/nologin
-sync:x:4:65534:sync:/bin:/bin/sync
-games:x:5:60:games:/usr/games:/usr/sbin/nologin
-man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
-lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+#各位数含义
+第1位：用户名
+第2位：密码占位符（x表示该用户需要密码才能登录，为空时无需密码即可登录）
+第3位：用户uid
+第4位：用户组gid
+第5位：用户附加基本信息，一般存储账户名全称，联系方式等信息
+第6位：用户目录
+第7位：用户登录Shell，/bin/bash为可登录系统Shell，/sbin/nologin表示用户无法登录系统。
 ```
 
-#### ⑤ /etc/shadow
+#### ⑥ /etc/shadow
 
-查看系统所有用户对应的密码信息（**当然是加密后的**）
+​	查看系统所有用户对应的密码信息（**当然是加密后的**）
 
-### 2. /proc/<pid>
+### 2. /proc/[pid]
 
-伪文件系统，可查看系统执行的进程信息
+​	/proc文件系统是一个伪文件系统，它只存在内存当中，而不占用外存空间。它以文件系统的方式为访问系统内核数据的操作提供接口。/proc可查看系统进程信息
+
+```bash
+/proc/sys/fs/file-max #查看系统级别的能够打开的文件句柄的数量（和内存大小成正比）
+ulimit -n #查看用户进程级的能够打开文件句柄的数量（Centos7默认是1024）
+```
+
+#### ① /proc/[pid]/cmdline 
+
+是一个只读文件，包含进程的完整命令行信息。如果该进程已经被交换出内存或者这个进程是 zombie 进程，则这个文件没有任何内容。该文件以空字符 null 而不是换行符作为结束标志。
+
+```bash
+#查看进程完整命令行信息
+cat /proc/9781/cmdline
+#输出：java-jar/home/ubuntu/scripts/vertx-restful.jar
+```
+
+#### ② /proc/[pid]/cwd 
+
+是进程当前工作目录的符号链接
+
+```bash
+ls -al /proc/9781/cwd
+#输出：lrwxrwxrwx 1 ubuntu ubuntu 0 Sep 30 17:39 cwd -> /home/ubuntu/scripts
+```
+
+#### ③ /proc/[pid]/environ
+
+显示进程的环境变量
+
+#### ④ /proc/[pid]/fd
+
+是一个目录，包含进程打开文件的情况
+
+#### ⑤ /proc/[pid]/statm
+
+显示进程所占用内存大小的统计信息。包含七个值，度量单位是 page(page大小可通过 getconf PAGESIZE 得到) 每page 大小为4KB
+
+```bash
+a）进程占用的总的内存(会包括动态连接库的，不准)
+b）进程当前时刻占用的物理内存
+c）同其它进程共享的内存
+d）进程的代码段
+e）共享库(从2.6版本起，这个值为0)
+f）进程的堆栈
+g）dirty pages(从2.6版本起，这个值为0)
+```
+
+#### ⑥ /proc/[pid]/status
+
+包含进程的状态信息。其很多内容与 /proc/[pid]/stat 和 /proc/[pid]/statm 相同，但是却是以一种更清晰地方式展现出来
+
+[参考]: https://www.linuxprobe.com/linux-proc-pid.html
 
 ## 四、shell相关
 
