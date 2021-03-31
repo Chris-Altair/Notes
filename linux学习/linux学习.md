@@ -30,7 +30,7 @@ find <path> -name <文件名> | -cmin <+|-分钟> | -ctime <+|-天数> | -type <
 tail -f <filename>
 ```
 
-### 2. 压缩及解压操作
+### 2. 压缩及分解合并操作
 
 ```bash
 #tar压缩文件
@@ -53,6 +53,15 @@ tar -tzvf <目标文件>.tar.gz
 zip -r xxx.zip ./* #（压缩当前路径下的所有文件及目录）
 #解压zip到指定目录：
 unzip -o -d <path> xxx.zip
+---------------------------------------------------------
+#分解大文件 -b设置分卷大小，每个分卷256m,分解后的文件xaa xab xac这种形式
+split -b 256m test.zip
+# -d 表示以数字为后缀,分解后的文件test_00 test_01
+split -b 256m -d test.zip test_ 
+#合并文件
+cat x* > test.zip
+#注意在网络或设备间复制文件可能会存在数据不一致的情况，需要比较源文件和合并后文件是否一致，推荐使用MD5
+md5sum <file>
 ```
 
 ### 3.文件内容操作
