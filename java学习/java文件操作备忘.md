@@ -99,6 +99,7 @@ public static final int BUFFER_SIZE = 1024 * 8;
         } finally {
             try {
                 //先关闭外面，再关闭里面
+                //这里可能存在问题，若zos.close()抛出异常则fos.close()不会执行，所以推荐使用try-with-resources
                 if (zos != null) {
                     zos.close();
                 }
