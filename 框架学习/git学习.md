@@ -37,7 +37,7 @@ git merge <branchname>
 -------------------------删除分支------------------------
 #删除本地分支
 git branch -d <branchname>
-#删除远程分支
+#删除远程分支,主机名好像也可放到--delete后
 git push origin --delete <remote_branchname>
 ```
 
