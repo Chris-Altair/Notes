@@ -32,13 +32,22 @@ git fetch origin <remote_branchname>:<local_branchname>
 #将本地的分支版本上传到远程并合并,若本地分支和远程分支名相同，可省略:,origin其实是主机名
 git push -u origin <local_branchname>:<remote_branchname>
 -------------------------合并分支------------------------
-#将本地<branchname>分支合并到当前分支，合并后需要push当前分支到远程分支，才能将远程分支也合并
+#将本地branch分支合并到当前分支current_branch，合并后需要push当前分支到远程分支，才能将远程分支也合并
+git checkout <current_branchname>
 git merge <branchname>
+git push origin <current_branchname>
 -------------------------删除分支------------------------
-#删除本地分支
+#1.删除本地分支
 git branch -d <branchname>
-#删除远程分支,主机名好像也可放到--delete后
+#2.删除远程分支,主机名也可放到--delete后
 git push origin --delete <remote_branchname>
+-------------------------重命名分支------------------------
+#1.删除远程分支xxx
+git push --delete origin xxx
+#2.重命名本地分支xxx->yyy
+git branch -m xxx yyy
+#3.推送分支到远程
+git push origin yyy
 ```
 
 ### 3. https切换git提交
