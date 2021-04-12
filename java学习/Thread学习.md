@@ -61,6 +61,6 @@ public static boolean interrupted() {
 
 ### *sleep(ms)*
 
-*Thread.sleep(ms)*，当前线程变为***TIMED_WAITING***状态，等待时间单位ms（超时等待，超时后会自动唤醒）
+*Thread.sleep(ms)*，当前线程变为***TIMED_WAITING***状态，等待时间单位为ms（超时等待，超时后会自动唤醒）
 
 *sleep*方法和*wait*方法的区别：**sleep不释放锁，wait会释放锁**
