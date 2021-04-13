@@ -19,6 +19,8 @@ daemon threads是低优先级的thread，它的作用是为User Thread提供服�
 
 daemon threads并不推荐使用在I/O操作中。
 
+但是有些不当的操作也可能导致daemon threads阻塞JVM关闭，比如在daemon thread中调用join（）方法。
+
 ```java
 Thread thread = new Thread(() -> {
             String threadName = Thread.currentThread().getName();
