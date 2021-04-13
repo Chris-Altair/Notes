@@ -145,3 +145,25 @@ try(Closeable c1 = ()->{ System.out.println("c1 close"); };
 }
 ```
 
+远程读取并下载文件
+
+```java
+try {
+            URL url = new URL("http://fanjc.com/cartoon/0.jpg");
+            URLConnection urlConn = url.openConnection();
+            try(BufferedInputStream bis = new BufferedInputStream(urlConn.getInputStream());
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                FileOutputStream fos = new FileOutputStream(new File("D:\\0.jpg"));){
+
+                byte[] buffer = new byte[1024];
+                int count = 0;
+                while ((count = bis.read(buffer)) != -1) {
+                    fos.write(buffer, 0, count);// 写入到输出流
+                }
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+```
+
