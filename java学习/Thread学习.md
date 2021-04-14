@@ -9,7 +9,7 @@
 - 若线程当前状态为**正常活动状态**,抛出*IllegalThreadStateException*
 - 否则将线程设置为守护线程
 
-java中有两种类型的thread，user threads 和 daemon threads。
+java中有两种类型的thread，***user threads*** 和 ***daemon threads***。
 
 User threads是高优先级的thread，JVM将会等待所有的User Threads运行完毕之后才会结束运行。
 
@@ -34,8 +34,6 @@ Thread thread = new Thread(() -> {
         thread.setDaemon(true);
         thread.start();
 ```
-
-
 
 ### *interrupt（）*
 

@@ -35,3 +35,11 @@ hashset(源码)，内部维护一个hashmap
     }
 ```
 
+推荐使用**静态方法**创建**特定类型**的集合,语义更清晰
+
+```java
+//主要这两种方式创建的集合不能add和remove元素,否则会抛出UnsupportedOperationException
+List<String> singletonList = Collections.singletonList("XXX");
+List<String> emptyList = Collections.emptyList();
+```
+
