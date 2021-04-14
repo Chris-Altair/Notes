@@ -130,7 +130,14 @@ kill -15 <pid>
 #pkill 按命令名批量杀死进程，但可能误杀
 ```
 
+### 6. json格式化
 
+```bash
+#使用jq,需要先安装
+echo '{"ReturnValue":1,"RecList":[{"success":true,"num":"JNTCU0102991527YQ","index":0}]}'|jq .
+#若放在文件中可以
+cat test.json|jq .
+```
 
 ### *.目录栈操作
 
