@@ -140,6 +140,41 @@ public T get() {
     }
 ```
 
+threadLocalMap内部是Entry[]数组，注意key用WeakReference（弱引用）包了一层，为什么要这么做呢？是为了防止内存泄漏，当没有该threadLocal的强引用时，如果执行gc，则会收回该threadLocal，即便如此还是推荐在线程后remove掉
+
+```java
+static class Entry extends WeakReference<ThreadLocal<?>> {
+            /** The value associated with this ThreadLocal. */
+            Object value;
+
+            Entry(ThreadLocal<?> k, Object v) {
+                super(k);
+                value = v;
+            }
+        }
+```
+
+弱引用测试
+
+```java
+	static class App {
+        public App() {}
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        //App app = new App()这种方式对象被强引用，无法回收
+        WeakReference<App> reference = new WeakReference<>(new App());
+        System.out.println("app:" + reference.get());
+        System.gc(); //参数加上-XX:+PrintGCDetails，输出gc信息
+        Thread.sleep(5000); //保证gc尽可能回收
+        if (reference.get() == null) {
+            System.out.println("app cleared");//表示已回收
+        }
+    }
+```
+
+
+
 需要注意，不同的threadLocal的set都是放在该线程的threadLocals里
 
 ```java
