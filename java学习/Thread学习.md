@@ -97,3 +97,55 @@ public static boolean interrupted() {
 *Thread.sleep(ms)*，当前线程变为***TIMED_WAITING***状态，等待时间单位为ms（超时等待，超时后会自动唤醒）
 
 *sleep*方法和*wait*方法的区别：**sleep不释放锁，wait会释放锁**
+
+## ThreadLocal详解
+
+threadLocal线程缓存，可以在线程内共享变量，对不同线程隔离
+
+其本质是将变量set到thread对象的threadLocals内
+
+```java
+/* ThreadLocal values pertaining to this thread. This map is maintained
+     * by the ThreadLocal class. */
+ThreadLocal.ThreadLocalMap threadLocals = null;
+```
+
+threadLocal的源码
+
+```java
+public void set(T value) {
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);//可见拿的就是线程对象的threadLocals
+        if (map != null)
+            map.set(this, value);
+        else
+            createMap(t, value);
+    }
+ThreadLocalMap getMap(Thread t) {
+        return t.threadLocals;
+    }
+
+public T get() {
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);
+        if (map != null) {
+            ThreadLocalMap.Entry e = map.getEntry(this);
+            if (e != null) {
+                @SuppressWarnings("unchecked")
+                T result = (T)e.value;
+                return result;
+            }
+        }
+        return setInitialValue();
+    }
+```
+
+需要注意，不同的threadLocal的set都是放在该线程的threadLocals里
+
+```java
+ThreadLocal<String> ts = new ThreadLocal<>();
+ThreadLocal<Integer> ti = new ThreadLocal<>();
+//这两个set都是放到当前thread的threadLocals里
+ts.set("123");ti.set(1);
+```
+
