@@ -31,6 +31,9 @@ git checkout <branchname>
 git chekcout -b <branchname>
 
 -------------------------远程分支操作------------------------
+#拉取远程分支并创建本地分支
+git checkout -b <branchname> origin/<remote_branchname>
+
 #本地新建分支并下载远程分支到本地分支
 git fetch origin <remote_branchname>:<local_branchname>
 #拉取远程分支并与本地分支merge,即git pull = git fetch + git merge
