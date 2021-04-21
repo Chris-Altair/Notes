@@ -173,9 +173,7 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
     }
 ```
 
-
-
-需要注意，不同的threadLocal的set都是放在该线程的threadLocals里
+需要注意，不同的threadLocal的set都是放在该线程的threadLocals里，key就是对应ThreadLocal对象的弱引用
 
 ```java
 ThreadLocal<String> ts = new ThreadLocal<>();
