@@ -29,7 +29,12 @@ git branch <branchname>
 git checkout <branchname>
 #创建并切换分支
 git chekcout -b <branchname>
-
+-------------------------切换分支暂存修改（非commit方式）操作------------------------
+#1.暂存本地修改，回到上一个commit
+git stash
+#2.可切到其他分支修改，之后切回原来的分支
+#3.恢复本地修改
+git stash pop
 -------------------------远程分支操作------------------------
 #拉取远程分支并创建本地分支
 git checkout -b <branchname> origin/<remote_branchname>
