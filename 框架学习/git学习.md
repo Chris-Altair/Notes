@@ -32,12 +32,14 @@ git branch <branchname>
 git checkout <branchname>
 #创建并切换分支
 git chekcout -b <branchname>
+
 -------------------------切换分支暂存修改（非commit方式）操作------------------------
 #1.暂存本地修改，回到上一个commit，注意这种方式是独立于分支的
 git stash
 #2.可切到其他分支修改，之后切回原来的分支
 #3.恢复本地修改
 git stash pop
+
 -------------------------远程分支操作------------------------
 #拉取远程分支并创建本地分支
 git checkout -b <branchname> origin/<remote_branchname>
@@ -49,6 +51,8 @@ git pull origin <remote_branchname>:<local_branchname>
 #将本地的分支版本上传到远程并合并,若本地分支和远程分支名相同，可省略:,origin其实是主机名
 git push -u origin <local_branchname>:<remote_branchname>
 
+#比较本地分支与远程分支差异
+git diff <local_branchname> <remote>/<remote_branchname>
 -------------------------合并分支------------------------
 #将本地branch分支合并到当前分支current_branch，合并后需要push当前分支到远程分支，才能将远程分支也合并
 git checkout <current_branchname>
