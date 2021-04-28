@@ -142,6 +142,8 @@ public T get() {
 
 threadLocalMap内部是Entry[]数组，注意key用WeakReference（弱引用）包了一层，为什么要这么做呢？是为了防止内存泄漏，当没有该threadLocal的强引用时，如果执行gc，则会收回该threadLocal，即便如此还是推荐在线程后remove掉
 
+![](https://pic3.zhimg.com/v2-90f2fe9b7c61840080a6a533b2798fce_b.jpg)
+
 ```java
 static class Entry extends WeakReference<ThreadLocal<?>> {
             /** The value associated with this ThreadLocal. */
