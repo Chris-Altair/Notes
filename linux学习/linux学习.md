@@ -130,14 +130,7 @@ kill -15 <pid>
 #pkill 按命令名批量杀死进程，但可能误杀
 ```
 
-### 6. json格式化
 
-```bash
-#使用jq,需要先安装
-echo '{"ReturnValue":1,"RecList":[{"success":true,"num":"JNTCU0102991527YQ","index":0}]}'|jq .
-#若放在文件中可以
-cat test.json|jq .
-```
 
 ### *.目录栈操作
 
@@ -159,7 +152,7 @@ popd +|-{N}
 
 ## 二、进阶命令
 
-### 1.定时任务
+### 1. crontab定时任务
 
 ```bash
 #查看系统定时任务
@@ -188,7 +181,7 @@ service cron restart
 tail -f /var/log/cron 
 ```
 
-### 2. ssh及sftp操作
+### 2. ssh 及 sftp
 
 ```bash
 1.ssh和sftp一般Linux系统都会默认安装,公用一个端口，默认端口22，而ftp需要手动安装
@@ -285,6 +278,21 @@ centos
 8. 重新载入配置（重启防火墙）  # firewall-cmd --reload    比如添加规则之后，需要执行此命令
 9. 再次查看想开的端口是否已开  # firewall-cmd --query-port=666/tcp  提示yes表示成功
 10. 若移除端口 # firewall-cmd --permanent --remove-port=666/tcp
+```
+
+### 4. curl 及 wget
+
+curl
+
+```bash
+#基础请求
+curl http://example.com
+#常用参数
+-X #可接http请求类型，如: -X POST
+-H #可接请求头，如: -H 'Content-Type: application/json'
+-d #可接POST请求体，如: -d '{"username":"Alice","pwd":"123456"}' 或也可读取文件: -d '@data.json'
+-k #不校验ssl证书
+-v #查看详细信息
 ```
 
 ## 三、目录结构
@@ -449,4 +457,3 @@ cat /etc/shells
 echo $SHELL
 ```
 
-## 五、工具推荐
