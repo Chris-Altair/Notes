@@ -35,3 +35,12 @@ hashset(源码)，内部维护一个hashmap
     }
 ```
 
+推荐使用**静态方法**创建**特定类型**的集合,语义更清晰
+
+```java
+//这两种方式创建的集合不能add和remove元素,否则会抛出UnsupportedOperationException
+List<String> singletonList = Collections.singletonList("XXX");
+List<String> emptyList = Collections.emptyList();
+```
+
+java方法是参数是赋值操作（基本类型赋值，对象赋给地址），jvm每个线程有自己的stack（所以各个线程调用方法内部的局部变量是不会互相干扰的），所有线程的对象存到heap，java方法的局部变量（基本类型和对象地址）存到栈内，java方法栈大小编译期就能计算好

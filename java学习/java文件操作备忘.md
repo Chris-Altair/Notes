@@ -99,6 +99,7 @@ public static final int BUFFER_SIZE = 1024 * 8;
         } finally {
             try {
                 //先关闭外面，再关闭里面
+                //这里可能存在问题，若zos.close()抛出异常则fos.close()不会执行，所以推荐使用try-with-resources
                 if (zos != null) {
                     zos.close();
                 }
@@ -110,5 +111,59 @@ public static final int BUFFER_SIZE = 1024 * 8;
             }
         }
     }
+```
+
+java7以上可以使用try-with-resources来优雅关闭资源
+
+Closeable接口继承AutoCloseable
+try-with-resources优势，资源必须实现AutoCloseable接口（否则编译会报错），执行完会自动执行close()方法，无需手动关闭
+
+因为输入输出流继承了Closeable接口，实现了close()方法
+
+```java
+public interface Closeable extends AutoCloseable {
+    /**
+     * 
+     */
+    public void close() throws IOException;
+}
+//流自动关闭，因为流实现了closeable接口，避免了finally
+try (InputStream in=new FileInputStream(src); OutputStream out=new FileOutputStream(dest)){
+            byte[] buf = new byte[1024];
+            int n;
+            while ((n = in.read(buf)) >= 0) {
+                out.write(buf, 0, n);
+            }
+        }catch(Exception e) {
+            System.out.println("catch block:"+e.getLocalizedMessage());
+        }finally{
+            System.out.println("finally block");
+        }
+//下面会输出c1 close c2 close
+try(Closeable c1 = ()->{ System.out.println("c1 close"); };
+    Closeable c2 = ()->{ System.out.println("c2 close"); }){
+}
+```
+
+远程读取并下载文件
+
+```java
+try {
+            URL url = new URL("http://fanjc.com/cartoon/0.jpg");
+            URLConnection urlConn = url.openConnection();
+            try(BufferedInputStream bis = new BufferedInputStream(urlConn.getInputStream());
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                FileOutputStream fos = new FileOutputStream(new File("D:\\0.jpg"));){
+
+                byte[] buffer = new byte[1024];
+                int count = 0;
+                while ((count = bis.read(buffer)) != -1) {
+                    fos.write(buffer, 0, count);// 写入到输出流
+                }
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 ```
 
