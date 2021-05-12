@@ -457,3 +457,15 @@ cat /etc/shells
 echo $SHELL
 ```
 
+## 五、常用工具
+
+```bash
+#查询命令的简洁文档
+tldr <command>
+
+#同步时间服务器
+rdate
+ntpdate
+ntpd
+```
+

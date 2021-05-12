@@ -1,6 +1,6 @@
 Java编译后出现$1.class、$2.class等多个class文件，如果java文件里存在匿名类会编译出多个class文件。
 
-java assert关键字
+### java assert关键字
 
 1、assert condition;
     这里condition是一个必须为真(true)的表达式。如果表达式的结果为true，那么断言为真，并且无任何行动
@@ -44,3 +44,16 @@ List<String> emptyList = Collections.emptyList();
 ```
 
 java方法是参数是赋值操作（基本类型赋值，对象赋给地址），jvm每个线程有自己的stack（所以各个线程调用方法内部的局部变量是不会互相干扰的），所有线程的对象存到heap，java方法的局部变量（基本类型和对象地址）存到栈内，java方法栈大小编译期就能计算好
+
+### Optional用法
+
+Optional最经典的null-safe get chain
+
+```java
+/*某个环节为空也不会报错*/
+return Optional.ofNullable(a)
+    .map(A::getB)
+    .map(B::getC)
+    .map(C::getD)
+    .orElse(null);
+```
