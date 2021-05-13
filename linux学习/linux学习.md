@@ -297,7 +297,7 @@ curl http://example.com
 
 ### 5. socket文件
 
-linux 系统中socket文件位于 /proc/<pid>/fd 下
+linux 系统中socket文件位于 /proc/\<pid>/fd 下
 
 使用大佬提供的server.c和client.c研究socket文件
 
