@@ -295,97 +295,29 @@ curl http://example.com
 -v #查看详细信息
 ```
 
-### 5. socket文件
+### 5. 自定义命令
 
-linux 系统中socket文件位于 /proc/\<pid>/fd 下
-
-使用大佬提供的server.c和client.c研究socket文件
-
-server.c下载：https://www.linuxhowtos.org/data/6/server.c
-
-client.c下载：https://www.linuxhowtos.org/data/6/client.c
-
-①编译文件
+创建当前用户可用的命令
 
 ```bash
-gcc server.c -o server
-gcc client.c -o client
+#1.编辑.bashrc文件
+vim ~/.bashrc
+#2.添加别名配置
+alias test="/usr/local/sh/test.sh" #自定义shell脚本
+#3.使配置生效
+source ~/.bashrc
+#4.当前用户即可使用test命令
 ```
 
-②先启动server，监听30000端口
-
-```ba
-./server 30000
-```
-
-③查看server端socket
+创建所有用户可用的命令
 
 ```bash
-###查看server端口占用情况
-[root@XXX ~]# lsof -i:30000
-COMMAND   PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
-server  26814 root    3u  IPv4 55115695      0t0  TCP *:ndmps (LISTEN)
-###查看server进程打开的文件
-[root@XXX ~]# ll /proc/26814/fd
-total 0
-lrwx------ 1 root root 64 May 13 13:57 0 -> /dev/pts/0
-lrwx------ 1 root root 64 May 13 13:57 1 -> /dev/pts/0
-lrwx------ 1 root root 64 May 13 13:57 2 -> /dev/pts/0
-lrwx------ 1 root root 64 May 13 13:57 3 -> socket:[55115695] #这个文件就是socket文件
+#1.新建或编辑文件
+vim /etc/profile.d/custom-aliases.sh
+#2.输入别名配置
+alias test="/usr/local/sh/test.sh" #自定义shell脚本
+#3.保存后新打开的终端都可使用test命令
 ```
-
-④启动client监听30000端口（不发送信息）
-
-```bash
-./client localhost 30000
-```
-
-⑤查看socket
-
-第一行，*:ndmps是server到监听socket文件名
-第二行，localhost:ndmps->localhost:41972(ESTABLISHED)是server 端为client端的请求建立的新的socket，负责和client通信
-第三行，localhost:41972 ->localhost:ndmps(ESTABLISHED)是client端端socket文件名
-
-```bash
-###查看server端口占用情况
-[root@izbp1a7mizpesi42ba4ikez ~]# lsof -i:30000
-COMMAND   PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
-server  26814 root    3u  IPv4 55115695      0t0  TCP *:ndmps (LISTEN)
-server  26814 root    4u  IPv4 55115696      0t0  TCP localhost:ndmps->localhost:41972 (ESTABLISHED) #s->c
-client  26900 root    3u  IPv4 55123210      0t0  TCP localhost:41972->localhost:ndmps (ESTABLISHED) #c->s
-###server线程使用的socket文件
-[root@izbp1a7mizpesi42ba4ikez ~]# ll /proc/26814/fd
-total 0
-lrwx------ 1 root root 64 May 13 13:57 0 -> /dev/pts/0
-lrwx------ 1 root root 64 May 13 13:57 1 -> /dev/pts/0
-lrwx------ 1 root root 64 May 13 13:57 2 -> /dev/pts/0
-lrwx------ 1 root root 64 May 13 13:57 3 -> socket:[55115695]
-lrwx------ 1 root root 64 May 13 14:26 4 -> socket:[55115696]
-
-###查看client端口占用情况
-[root@izbp1a7mizpesi42ba4ikez ~]# lsof -i:41972
-COMMAND   PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
-server  26814 root    4u  IPv4 55115696      0t0  TCP localhost:ndmps->localhost:41972 (ESTABLISHED) #s->c
-client  26900 root    3u  IPv4 55123210      0t0  TCP localhost:41972->localhost:ndmps (ESTABLISHED) #c->s
-###client线程使用的socket文件
-[root@izbp1a7mizpesi42ba4ikez ~]# ll /proc/26900/fd
-total 0
-lrwx------ 1 root root 64 May 13 14:26 0 -> /dev/pts/2
-lrwx------ 1 root root 64 May 13 14:26 1 -> /dev/pts/2
-lrwx------ 1 root root 64 May 13 14:26 2 -> /dev/pts/2
-lrwx------ 1 root root 64 May 13 14:26 3 -> socket:[55123210] #client通信server
-```
-
-结论：
-
-1. socket的构造过程是阻塞的，构造过程会等待另一端的响应，只要socket建立后就可发送和接受数据
-2. 由上可知socket文件包含 源ip及port 和 目标ip及port，当连接被accept（即建立tcp连接）后就会生产socket；
-3. server启动后，会生成 TCP *:ndmps (LISTEN)的socket，\*号表示服务器本地ip；
-4. 每来一个连接，server都会生成 localhost:ndmps->localhost:cport的socket，使得server端可以发送数据给client端
-
-参考：https://wiki.jikexueyuan.com/project/java-socket/socket-tcp-bean.html
-
-​			https://www.linuxhowtos.org/C_C++/socket.htm
 
 ## 三、目录结构
 
@@ -539,6 +471,98 @@ g）dirty pages(从2.6版本起，这个值为0)
 包含进程的状态信息。其很多内容与 /proc/[pid]/stat 和 /proc/[pid]/statm 相同，但是却是以一种更清晰地方式展现出来
 
 [参考]: https://www.linuxprobe.com/linux-proc-pid.html
+
+### 3. socket文件
+
+linux 系统中socket文件位于 /proc/\<pid>/fd 下
+
+使用大佬提供的server.c和client.c研究socket文件
+
+server.c下载：https://www.linuxhowtos.org/data/6/server.c
+
+client.c下载：https://www.linuxhowtos.org/data/6/client.c
+
+①编译文件
+
+```bash
+gcc server.c -o server
+gcc client.c -o client
+```
+
+②先启动server，监听30000端口
+
+```ba
+./server 30000
+```
+
+③查看server端socket
+
+```bash
+###查看server端口占用情况
+[root@XXX ~]# lsof -i:30000
+COMMAND   PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
+server  26814 root    3u  IPv4 55115695      0t0  TCP *:ndmps (LISTEN)
+###查看server进程打开的文件
+[root@XXX ~]# ll /proc/26814/fd
+total 0
+lrwx------ 1 root root 64 May 13 13:57 0 -> /dev/pts/0
+lrwx------ 1 root root 64 May 13 13:57 1 -> /dev/pts/0
+lrwx------ 1 root root 64 May 13 13:57 2 -> /dev/pts/0
+lrwx------ 1 root root 64 May 13 13:57 3 -> socket:[55115695] #这个文件就是socket文件
+```
+
+④启动client监听30000端口（不发送信息）
+
+```bash
+./client localhost 30000
+```
+
+⑤查看socket
+
+第一行，*:ndmps是server到监听socket文件名
+第二行，localhost:ndmps->localhost:41972(ESTABLISHED)是server 端为client端的请求建立的新的socket，负责和client通信
+第三行，localhost:41972 ->localhost:ndmps(ESTABLISHED)是client端端socket文件名
+
+```bash
+###查看server端口占用情况
+[root@izbp1a7mizpesi42ba4ikez ~]# lsof -i:30000
+COMMAND   PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
+server  26814 root    3u  IPv4 55115695      0t0  TCP *:ndmps (LISTEN)
+server  26814 root    4u  IPv4 55115696      0t0  TCP localhost:ndmps->localhost:41972 (ESTABLISHED) #s->c
+client  26900 root    3u  IPv4 55123210      0t0  TCP localhost:41972->localhost:ndmps (ESTABLISHED) #c->s
+###server线程使用的socket文件
+[root@izbp1a7mizpesi42ba4ikez ~]# ll /proc/26814/fd
+total 0
+lrwx------ 1 root root 64 May 13 13:57 0 -> /dev/pts/0
+lrwx------ 1 root root 64 May 13 13:57 1 -> /dev/pts/0
+lrwx------ 1 root root 64 May 13 13:57 2 -> /dev/pts/0
+lrwx------ 1 root root 64 May 13 13:57 3 -> socket:[55115695]
+lrwx------ 1 root root 64 May 13 14:26 4 -> socket:[55115696]
+
+###查看client端口占用情况
+[root@izbp1a7mizpesi42ba4ikez ~]# lsof -i:41972
+COMMAND   PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
+server  26814 root    4u  IPv4 55115696      0t0  TCP localhost:ndmps->localhost:41972 (ESTABLISHED) #s->c
+client  26900 root    3u  IPv4 55123210      0t0  TCP localhost:41972->localhost:ndmps (ESTABLISHED) #c->s
+###client线程使用的socket文件
+[root@izbp1a7mizpesi42ba4ikez ~]# ll /proc/26900/fd
+total 0
+lrwx------ 1 root root 64 May 13 14:26 0 -> /dev/pts/2
+lrwx------ 1 root root 64 May 13 14:26 1 -> /dev/pts/2
+lrwx------ 1 root root 64 May 13 14:26 2 -> /dev/pts/2
+lrwx------ 1 root root 64 May 13 14:26 3 -> socket:[55123210] #client通信server
+```
+
+结论：
+
+1. socket的构造过程是阻塞的，构造过程会等待另一端的响应，只要socket建立后就可发送和接受数据
+2. 由上可知socket文件包含 源ip及port 和 目标ip及port，当连接被accept（即建立tcp连接）后就会生产socket；
+3. server启动后，会生成 TCP *:ndmps (LISTEN)的socket，\*号表示服务器本地ip；
+4. 每来一个连接，server都会生成 localhost:ndmps->localhost:cport的socket，使得server端可以发送数据给client端
+
+参考：https://wiki.jikexueyuan.com/project/java-socket/socket-tcp-bean.html
+
+​			https://www.linuxhowtos.org/C_C++/socket.htm
 
 ## 四、shell相关
 
