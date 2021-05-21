@@ -26,6 +26,8 @@ FROM
 	(select g.* FROM G_USER g ORDER BY g.CREATE_TIME) tt 
 WHERE
 	ROWNUM <= 20) temp where temp.rowno >= 10;
+--需要注意，若存在排序则当前查询出的ROWNUM是乱序
+SELECT ROWNUM as luanxu, g.* FROM G_USER g ORDER BY g.USER_NAME
 ```
 ## 3. case when 语法
 ```sql
