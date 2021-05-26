@@ -14,5 +14,48 @@ rabbitmq默认消息不会持久化，重启则丢失
 
 @RabbitListener重试机制是针对方法抛异常，若方法抛出异常则按yml文件配置的方式重试（无论手动、自动）
 
-当然若选择手动模式，并且最后basicReject选择重新入队，则将陷入死循环。
+当然若选择手动模式，并且catch掉所有异常，finally调用basicReject选择重新入队，则将陷入死循环。
+
+```yaml
+#参考springboot配置rabbitmq
+spring:
+  #消息队列
+  rabbitmq:
+    host: 121.196.162.145
+    port: 5672
+    virtual-host: /
+    username: admin
+    password: 123456789
+    connection-timeout: 15000
+    #CORRELATED值是发布消息成功到交换器后会触发回调方法
+    publisher-confirm-type: CORRELATED
+    #publisher-return模式可以在消息没有被路由到指定的queue时将消息返回，而不是丢弃
+    publisher-returns: true
+    publisher-retry: 3
+    publisher-time: 30
+    cache:
+      connection:
+        mode: channel
+        size: 5
+      channel:
+        size: 10
+    template:
+      mandatory: true
+      retry:
+        enabled: true
+    listener:
+      simple:
+        retry:
+          enabled: true #开启重试机制
+          max-attempts: 3 #消息最多消费3次
+          initial-interval: 1s # 消息多次消费的间隔1秒
+          max-interval: 16s #最大重试时间间隔
+          multiplier: 2 #应用于上一重试间隔的乘数
+        acknowledge-mode: manual
+        concurrency: 2 #每个listener在初始化的时候设置的并发消费者的个数
+        prefetch: 5 #每次从一次性从broker里面取的待消费的消息的个数
+        default-requeue-rejected: false
+```
+
+
 

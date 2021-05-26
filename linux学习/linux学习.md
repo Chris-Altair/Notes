@@ -15,6 +15,7 @@ touch <filename>
 #查看文件
 cat <filename>  #查看文件内容，-n:显示行号
 stat <filename> #查看文件详细信息
+wc -l <filename> #查看文件行数
 #删除文件
 rm -rf <filename/dirname>
 #创建目录
@@ -32,6 +33,8 @@ tail -f <filename>
 
 ### 2. 压缩及分解合并操作
 
+tar操作
+
 ```bash
 #tar压缩文件
 tar -czvf <目标文件>.tar.gz <源文件或文件夹>
@@ -46,14 +49,22 @@ tar -tzvf <目标文件>.tar.gz
 
 -z或--gzip或--ungzip 通过gzip指令处理备份文件，经处理的备份文件会以.gz后缀结尾
 -v或--verbose：显示打包文件过程
--f：指定压缩包的文件名；
-------------------------------------------------------
+-f：指定压缩包的文件名
+```
+
+zip操作
+
+```bash
 #zip unzip
 #压缩zip：
 zip -r xxx.zip ./* #（压缩当前路径下的所有文件及目录）
 #解压zip到指定目录：
 unzip -o -d <path> xxx.zip
----------------------------------------------------------
+```
+
+分解合并文件
+
+```bash
 #分解大文件 -b设置分卷大小，每个分卷256m,分解后的文件xaa xab xac这种形式
 split -b 256m test.zip
 # -d 表示以数字为后缀,分解后的文件test_00 test_01
@@ -66,6 +77,8 @@ md5sum <file>
 
 ### 3.文件内容操作
 
+echo输入文件
+
 ```bash
 #向文件输入内容，-e：支持转义字符
 echo -e '<文件内容>' >> <filename>
@@ -74,7 +87,11 @@ echo -e '<文件内容>' >> <filename>
 #输出
 	a	b	c
 	a1	b1	c1
----------------------------------------------
+```
+
+按列拼接文件
+
+```bash
 #按列拼接文件
 paste <filename1> <filename2>
 #例子
@@ -84,16 +101,31 @@ paste <filename1> <filename2>
 #输出
 	a	b	c	a b c
 	a1	b1	c1	a1 b1 c1
----------------------------------------------
+```
+
+grep命令
+
+```bash
 #grep：行内容匹配，可将满足条件的行输出，支持正则
 grep <rule> <filename>
+grep -n <filename> # -n显示行号
+grep -B <row_count> <rule> <filename> # 显示匹配前几行
+grep -A <row_count> <rule> <filename> # 显示匹配后几行
+grep -99 <rule> <filename> # 显示匹配前后99行
+
 #例子，注意：正则表达式内的{}等规则需要用\转义
 	echo -ne 'Amadeus@163.com'|grep '[a-zA-Z0-9]\{2,\}@[a-zA-Z0-9]*\(.com\)'
----------------------------------------------
-#awk
+```
 
----------------------------------------------
+sed命令
+
+```bash
 #sed 学习参考：https://coolshell.cn/articles/9104.html
+```
+
+awk命令
+
+```bash
 ```
 
 ### 4.文件及目录权限操作
