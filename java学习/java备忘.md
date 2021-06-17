@@ -57,3 +57,71 @@ return Optional.ofNullable(a)
     .map(C::getD)
     .orElse(null);
 ```
+
+flatMap可聚合stream
+
+```json
+{
+  "Success": false,
+  "ErrorCode": null,
+  "Remark": "订单上传失败",
+  "SuccessOrders": [
+  ],
+  "FailOrders": [
+    {
+      "OrderId": null,
+      "TraceId": null,
+      "Remark": "【XXX】错误信息1",
+      "ExtendData1": null,
+      "ExtendData2": null,
+      "ExtendData3": null,
+      "ExtendData4": null,
+      "ExtendData5": null
+    },
+    {
+      "OrderId": null,
+      "TraceId": null,
+      "Remark": "【XXX】错误信息2",
+      "ExtendData1": null,
+      "ExtendData2": null,
+      "ExtendData3": null,
+      "ExtendData4": null,
+      "ExtendData5": null
+    },
+    {
+      "OrderId": null,
+      "TraceId": null,
+      "Remark": "【XXX】错误信息3",
+      "ExtendData1": null,
+      "ExtendData2": null,
+      "ExtendData3": null,
+      "ExtendData4": null,
+      "ExtendData5": null
+    },
+    {
+      "OrderId": null,
+      "TraceId": null,
+      "Remark": "【XXX】错误信息4",
+      "ExtendData1": null,
+      "ExtendData2": null,
+      "ExtendData3": null,
+      "ExtendData4": null,
+      "ExtendData5": null
+    }
+  ]
+}
+```
+
+
+
+```java
+final JSONObject data = JSON.parseObject("@json")
+        //拼接错误信息
+        final String errorMsg = Optional.ofNullable(data.getJSONArray("FailOrders"))
+                .flatMap(array -> array.stream()
+                        .map(json -> (JSONObject) json)
+                        .map(d -> d.getString("Remark"))
+                        .reduce((msg1, msg2) -> msg1 + ";" + msg2))
+                .orElse(data.getString("Remark"));
+```
+

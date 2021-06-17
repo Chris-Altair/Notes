@@ -120,6 +120,8 @@ grep -99 <rule> <filename> # 显示匹配前后99行
 sed命令
 
 ```bash
+#查看文件第5-8行
+sed -n '5,8p' <filename>
 #sed 学习参考：https://coolshell.cn/articles/9104.html
 ```
 
