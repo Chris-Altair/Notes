@@ -30,7 +30,7 @@ git branch -r
 git branch <branchname>
 #切换分支
 git checkout <branchname>
-#创建并切换分支
+#已当前分支为基准，创建并切换分支
 git chekcout -b <branchname>
 
 -------------------------切换分支暂存修改（非commit方式）操作------------------------
