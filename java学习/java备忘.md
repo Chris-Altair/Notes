@@ -125,3 +125,57 @@ final JSONObject data = JSON.parseObject("@json")
                 .orElse(data.getString("Remark"));
 ```
 
+### 内部类使用好处
+
+1. 内部类可以使用外部类的属性及方法（包括私有属性）
+
+2. 封装性
+
+3. 间接实现多重继承
+
+```java
+public class TestIterator {
+    private int value;
+
+    private class InnerClass {
+        public int cal() {
+            //调用外部类私有属性，可避免属性名重复
+            return TestIterator.this.value * 10;
+        }
+    }
+
+    public void test(boolean b){
+        if (b) {
+            //T1只能在if作用域内使用，还有这种操作
+            class T1{
+            }
+            T1 t1 = new T1();
+        }
+    }
+}
+```
+
+### 高效复制数组方法
+
+```java
+//native方法
+System.arraycopy(src, 0, dest, 0, length)
+```
+
+测试方法，测试复制接近8400万长度的byte[]，native方法平均15ms，for循环赋值19ms
+
+```java
+public static void main(String[] args) throws IOException {
+        final int length = 0x5000000;
+        System.out.println("length = " + length);//83886080
+        byte[] src = new byte[length];
+        byte[] dest = new byte[length];
+        final long start = System.currentTimeMillis();
+//        System.arraycopy(src, 0, dest, 0, length);//15ms
+        copyByfor(src, dest);//19ms
+        final long end = System.currentTimeMillis();
+        System.out.println((end - start) + "ms");
+    }
+```
+
+参考：https://segmentfault.com/q/1010000020149713
