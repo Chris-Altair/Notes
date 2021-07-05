@@ -1,5 +1,7 @@
 抽象父类中可以使用@Autowired注入，然后子类注册为bean，测试可以成功调用
 
+（之前一直是使用ApplicationContext做静态调用，这种方法能更好的抽象）
+
 ```java
 public abstract class Super{
     @Autowired

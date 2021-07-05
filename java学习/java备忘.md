@@ -162,7 +162,7 @@ public class TestIterator {
 System.arraycopy(src, 0, dest, 0, length)
 ```
 
-测试方法，测试复制接近8400万长度的byte[]，native方法平均15ms，for循环赋值19ms
+测试方法，测试复制接近8400万长度的byte[]，native方法平均15ms，for循环赋值19ms，从结果看貌似没强多少，但考虑到没固定环境比如堆内存之类的，只是粗糙测试，至少效率比for方式强。
 
 ```java
 public static void main(String[] args) throws IOException {
