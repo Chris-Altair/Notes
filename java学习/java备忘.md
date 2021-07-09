@@ -193,6 +193,12 @@ Modifier.isStatic((Field)f.getModifiers())
 
 **在java中，泛型不能继承和实现，类型参数化**
 
+无界通配符：?，使用无界通配符的只能用object接
+
+<T extends V> 表示T必须是V或V的子类
+
+<T super V>     表示T必须是V或V的父类
+
 即定义方法可以是泛型，但只要调用就必须是具体类型
 
 ```java
@@ -206,6 +212,39 @@ public <V extends App> void f(V v){
         v.test();
     }
 //泛型类型可以有多个
-public <A,V> void f(){}
+//泛型支持多个限定，表示泛型类型必须实现多个接口；若限定中有类，则必须在第一个，表示该泛型类型继承里该类
+public <A extends Serializable & Closeable, V> void f(){}
 ```
 
+泛型擦除
+
+在编译期，编译器会先检查引用类型，再把泛型去掉，ArrayList<String>和ArrayList<Integer>在运行期的类型是相同的，并且通过反射是可以将不同类型的对象放到同一个List里的
+
+参考：https://www.cnblogs.com/hongdada/p/13993251.html
+
+在《Effective Java》给出过一个十分精炼的回答：**producer-extends, consumer-super（PECS）**。
+
+从字面意思理解就是，`extends`是限制数据来源的（生产者），而`super`是限制数据流入的（消费者）。而显然我们一些经常使用到的代码中也都是符合了这一规则。
+
+```javascript
+public static <T> void copy(List<? super T> dest, List<? extends T> src) {
+        int srcSize = src.size();
+        if (srcSize > dest.size())
+            throw new IndexOutOfBoundsException("Source does not fit in dest");
+
+        if (srcSize < COPY_THRESHOLD ||
+            (src instanceof RandomAccess && dest instanceof RandomAccess)) {
+            for (int i=0; i<srcSize; i++)
+                dest.set(i, src.get(i));
+        } else {
+            ListIterator<? super T> di=dest.listIterator();
+            ListIterator<? extends T> si=src.listIterator();
+            for (int i=0; i<srcSize; i++) {
+                di.next();
+                di.set(si.next());
+            }
+        }
+    }
+```
+
+参考：https://cloud.tencent.com/developer/article/1649866
