@@ -179,3 +179,33 @@ public static void main(String[] args) throws IOException {
 ```
 
 参考：https://segmentfault.com/q/1010000020149713
+
+### 反射备忘
+
+java反射判断字段是否static及final修饰，可使用Modifier类
+
+```java
+Modifier.isFinal((Field)f.getModifiers())
+Modifier.isStatic((Field)f.getModifiers())
+```
+
+### 泛型整理
+
+**在java中，泛型不能继承和实现，类型参数化**
+
+即定义方法可以是泛型，但只要调用就必须是具体类型
+
+```java
+//需要注意
+List<Object>不是List<Object>的父类
+
+//泛型方法
+public <V> void f(V v){}
+//还可以使用通配符
+public <V extends App> void f(V v){
+        v.test();
+    }
+//泛型类型可以有多个
+public <A,V> void f(){}
+```
+
