@@ -12,6 +12,11 @@ git commit -a -m 'msg'
 
 #撤销本地commit
 git reset --soft HEAD~1 # –-soft只回退commit不回退修改；1表示回退1次commit
+
+#将位于暂存区的文件移除，但本地还保留
+git rm -f --cached <filepath>
+#永久删除
+git rm <filepath>
 ```
 
 ### 2. git分支操作

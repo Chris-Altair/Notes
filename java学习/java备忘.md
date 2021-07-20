@@ -248,3 +248,126 @@ public static <T> void copy(List<? super T> dest, List<? extends T> src) {
 ```
 
 参考：https://cloud.tencent.com/developer/article/1649866
+
+### 迭代器
+
+**特点：轻量级对象；支持在遍历内删除元素**
+
+以ArrayList为参考，ArrayList在通过迭代器遍历时，不允许在原list上增删元素（但可以通过迭代器的remove方法删除），因为增删操作会修modCount，迭代器next、remove方法操作前会校验modCount是否改变，改变则抛出ConcurrentModificationException
+
+```java
+private class Itr implements Iterator<E> {
+        int cursor;       // index of next element to return
+        int lastRet = -1; // index of last element returned; -1 if no such
+        int expectedModCount = modCount;
+
+        Itr() {}
+
+        public boolean hasNext() {
+            return cursor != size;
+        }
+
+        @SuppressWarnings("unchecked")
+        public E next() {
+            checkForComodification();//操作前都会校验list是否增删
+            int i = cursor;
+            if (i >= size)
+                throw new NoSuchElementException();
+            Object[] elementData = ArrayList.this.elementData;
+            if (i >= elementData.length)
+                throw new ConcurrentModificationException();
+            cursor = i + 1;
+            return (E) elementData[lastRet = i];
+        }
+
+        public void remove() {
+            if (lastRet < 0)
+                throw new IllegalStateException();
+            checkForComodification();//操作前都会校验list是否增删
+
+            try {
+                ArrayList.this.remove(lastRet);
+                //个人理解，可能有误
+                //删除元素后根据下一个元素的位置重置迭代器，保证remove操作不会干扰迭代器遍历
+                //即删除元素后，从下个元素开始遍历
+                cursor = lastRet;
+                lastRet = -1;
+                expectedModCount = modCount;//删除会重置expectedModCount
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void forEachRemaining(Consumer<? super E> consumer) {
+            ...
+        }
+		/**
+		  * 快速失败机制，校验list内modCount是否变化(增删操作会修改modCount)，变化则直接抛异常
+		  */
+        final void checkForComodification() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+        }
+    }
+```
+
+java迭代器接口
+
+```java
+public interface Iterator<E> {
+    boolean hasNext();
+    E next();
+    
+    default void remove() {
+        throw new UnsupportedOperationException("remove");
+    }
+    default void forEachRemaining(Consumer<? super E> action) {
+        Objects.requireNonNull(action);
+        while (hasNext())
+            action.accept(next());
+    }
+}
+```
+
+### jdk自带lambda备忘
+
+Predicate可用于校验方法,接受一个值返回boolean类型，支持and、or等逻辑表达式
+
+```java
+Predicate<T> <=> T -> boolean
+//执行lambda表达式
+predicate.test(T t)
+//支持and、or等逻辑表达式
+predicate1.or(predicate2).test("Hello world")
+```
+
+学到了一手，枚举还可以这样用
+
+```java
+public enum RuleValidate {
+    ARGUMENT_IS_NULL(ErrorCode.ARGUMENT_ERROR, Objects::isNull),
+    CUSTOMER_NOT_FOUND(ErrorCode.BUSINESS_ERROR, (String customer) -> customer.equalsIgnoreCase(""))
+    //省略其他校验规则......
+    ;
+
+    private ErrorCode errorCode;
+    private Predicate<String> predicate;
+
+    RuleValidate(ErrorCode errorCode, Predicate<String> predicate) {
+        this.errorCode = errorCode;
+        this.predicate = predicate;
+    }
+
+    public static int verity(String customer) {
+        for (RuleValidate validate : RuleValidate.values()) {
+            if (validate.predicate.test(customer)) {
+                return validate.errorCode.getCode();
+            }
+        }
+        return 1;
+    }
+}
+```
+
