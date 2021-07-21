@@ -329,6 +329,15 @@ curl http://example.com
 -v #查看详细信息
 ```
 
+wget可用于下载文件
+
+```bash
+#保存文件到<filepath>路径
+wget -P <filepath> <url>
+#保存文件到当前路径，并命名为<filename>
+wget -O <filename> <url>
+```
+
 ### 5. 自定义命令
 
 创建当前用户可用的命令

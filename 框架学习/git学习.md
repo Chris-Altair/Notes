@@ -13,6 +13,12 @@ git commit -a -m 'msg'
 #撤销本地commit
 git reset --soft HEAD~1 # –-soft只回退commit不回退修改；1表示回退1次commit
 
+----------回退单个文件到指定版本方法--------------
+	#1.查看文件历史版本
+	git log -- <文件相对路径>
+	#2.根据版本号，回退单个文件版本
+	git checkout <version> -- <文件相对路径>
+
 #将位于暂存区的文件移除，但本地还保留
 git rm -f --cached <filepath>
 #永久删除
