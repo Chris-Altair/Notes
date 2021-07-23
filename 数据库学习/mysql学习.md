@@ -1,6 +1,6 @@
 ### mysql json字段
 
-```bash
+```mysql
 mysql json字段获取,支持json和数组
 #category={'id':"XXX",name:"XXX"} tags=[1,3,5]
 > mysql> SELECT id, category->'$.id', category->'$.name', tags->'$[0]', tags->'$[2]' FROM lnmp;
@@ -11,6 +11,22 @@ mysql json字段获取,支持json和数组
 > |  2 | 2                | "php.net"          | 1            | 5            |
 > +----+------------------+--------------------+--------------+--------------+
 > 2 rows in set (0.00 sec)</pre>
+
+update cfg_right_group
+set functional_rights = JSON_SET(functional_rights,'$.order_processing',json_merge(functional_rights->>'$.order_processing','"btn_notmatched_export_data"'))
+where type = 0 and locate('btn_or_notmatched',functional_rights) and locate('btn_op_export_data',functional_rights) and group_id = 655
+and locate('btn_notmatched_look_data',functional_rights);
+
+#给json字段functional_rights内的order_processing数组添加btn_notmatched_export_data，返回order_processing数组
+select json_merge(functional_rights->>'$.order_processing','"btn_notmatched_export_data"') as a from cfg_right_group 
+where type = 0 and locate('btn_or_notmatched',functional_rights) and group_id = 655
+and locate('btn_notmatched_look_data',functional_rights);
+
+#给json字段functional_rights内的order_processing数组添加btn_notmatched_export_data，
+#并替换原order_processing，返回functional_rights
+select JSON_SET(functional_rights,'$.order_processing',json_merge(functional_rights->>'$.order_processing','"btn_notmatched_export_data"')) as a from cfg_right_group 
+where type = 0 and locate('btn_or_notmatched',functional_rights) and group_id = 655
+and locate('btn_notmatched_look_data',functional_rights);
 ```
 
 ### mysql默认排序规则
