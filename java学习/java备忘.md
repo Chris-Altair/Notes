@@ -203,7 +203,7 @@ Modifier.isStatic((Field)f.getModifiers())
 
 ```java
 //需要注意
-List<Object>不是List<Object>的父类
+List<Object>不是List<T>的父类
 
 //泛型方法
 public <V> void f(V v){}
@@ -367,6 +367,45 @@ public enum RuleValidate {
             }
         }
         return 1;
+    }
+}
+```
+
+### 枚举单例模式
+
+枚举单例模式，利用枚举特性保证单例和线程安全， 也是effective java 作者极力推荐的单例实现模式
+
+```java
+/**
+ * 枚举单例模式
+ */
+public class SingletonDemo {
+
+    private SingletonDemo() {}
+
+    /**
+     * 枚举
+     */
+    private enum Singleton {
+        INSTANCE;
+
+        private final SingletonDemo singletonDemo;
+
+        Singleton() {
+            this.singletonDemo = new SingletonDemo();
+        }
+
+        private SingletonDemo getInstance(){
+            return INSTANCE.singletonDemo;
+        }
+    }
+
+    public static SingletonDemo getInstance() {
+        return Singleton.INSTANCE.getInstance();
+    }
+
+    public static void main(String[] args) {
+        SingletonDemo.getInstance();
     }
 }
 ```
