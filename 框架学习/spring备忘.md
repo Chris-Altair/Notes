@@ -17,6 +17,5 @@ public class A extend Super{
         test();//可以成功调用
     }
 }
-
 ```
 
