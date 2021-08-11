@@ -180,6 +180,35 @@ public static void main(String[] args) throws IOException {
 
 参考：https://segmentfault.com/q/1010000020149713
 
+### 重写hashCode
+
+可参考Arrays.hashCode(Object[] o)
+
+todo 之所以使用31，可能是为了错开？，有时间研究一下
+
+```java
+//31 * result = result << 5 - result
+public static int hashCode(Object a[]) {
+        if (a == null)
+            return 0;
+        int result = 1;
+        for (Object element : a)
+            result = 31 * result + (element == null ? 0 : element.hashCode());
+        return result;
+    }
+```
+
+Objects.hash方法其实就是调用的Arrays.hashCode
+
+```java
+public static int hashCode(Object o) {
+        return o != null ? o.hashCode() : 0;
+    }
+public static int hash(Object... values) {
+        return Arrays.hashCode(values);
+    }
+```
+
 ### 反射备忘
 
 java反射判断字段是否static及final修饰，可使用Modifier类
@@ -329,6 +358,37 @@ public interface Iterator<E> {
             action.accept(next());
     }
 }
+```
+
+使用示例
+
+```java
+public static void main(String[] args) {
+        final List<Integer> integers = new ArrayList<>();
+        integers.add(0);
+        integers.add(1);
+        integers.add(2);
+        integers.add(3);
+        integers.add(4);
+        integers.add(5);
+        final Iterator<Integer> iterator = integers.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            final Integer next = iterator.next();
+            if (next % 2 != 0) {//移除奇数元素
+                System.out.println(i + ":" + integers.get(i) + " " + next); //这两个值相同
+                iterator.remove();//相当于把当前next元素移除，下个元素接上，所以i不变，这样下次循环get(i)就是下个值
+                continue;
+            }
+            i++;
+        }
+        System.out.println(integers.toString());
+    }
+------返回------
+1:1 1
+2:3 3
+3:5 5
+[0, 2, 4]
 ```
 
 ### jdk自带lambda备忘

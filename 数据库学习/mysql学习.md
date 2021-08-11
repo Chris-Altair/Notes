@@ -51,7 +51,28 @@ SELECT * FROM table1 WHERE id IN (3,1,2) order by FIELD(id, 3,1,2);
 ```sql
 #查看表结构
 desc <table_name>;
+
+---事务操作---
+#1.开启事务
+begin;
+#2.执行sql
+...
+#3.提交/回滚事务
+commit;
+rollback;
 ```
+
+### mysql位运算
+
+```sql
+select 5 | 8; #位或，二进制位有1就1，否则为0
+select 5 & 8; #位与，二进制位都为1，则为1，否则为0
+select 5 ^ 8; #位异或，二进制位不同为1，否则为0
+select ~5;    #位取反，相当于取补码
+SELECT BIN(5);#查看数字二进制
+```
+
+optimizer_trace可查看实际sql的执行，有时间研究一下
 
 mysql优化
 
