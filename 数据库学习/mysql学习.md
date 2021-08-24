@@ -243,3 +243,25 @@ JOIN gg
 ORDER BY  t.spec_no ASC; 
 ```
 
+### mysql select字段数及类型对查询效率的影响
+
+先抛出情况
+
+```sql
+#① table1数量165000左右，该sql查出1w左右条数据，查询均相同且走索引，*或者查询大部分字段需要10s左右
+select * from table1 where ...
+#② 查询varchar(255)字段3-4s左右
+select varchar_255 from table1 where ...
+#③ 查询数字，不到1s
+select int_1 from table1 where ...
+```
+
+explain分析sql的执行计划是相同的，通过navicat分析sql状态，
+
+唯一明显的差别在于Bytes_sent（The number of bytes sent from server.）
+
+1.  查全部     5773978
+2.  查字符串 1277638
+3.  查数字     74192
+
+可见**查询不同的类型，返回的数据大小是有显著差异的**（字符串>>数字）及**查询部分还是所有的字段** 都**很大程度影响了sql的效率**，所以代码规范上有select尽量只差所需要的字段，避免查多余的字段
