@@ -62,6 +62,25 @@ commit;
 rollback;
 ```
 
+mysql进阶命令
+
+```mysql
+#可查看innodb状态，例如可查看锁情况
+show engine innodb status;
+#显示用户正在运行的线程
+show processlist;
+```
+
+### mysql  duplicate操作
+
+```mysql
+#不存在唯一索引或主键冲突则插入，否则更新（注意，要使用这条语句，前提条件是这个表必须有一个唯一索引或主键）
+#详细解释：若insert存在唯一索引或主键冲突则更新update后的值，否则插入values内的值
+insert into `table` (`f1`, `f2`,`f3`,`f4`) values (v1, v2, v3, v4) on duplicate key update `f3` = v33, `f4` = v44
+#不存在唯一索引或主键冲突则插入，否则忽略
+insert ignore into `table` (`f1`, `f2`,`f3`,`f4`) values (v1, v2, v3, v4)
+```
+
 ### mysql位运算
 
 ```sql
@@ -72,9 +91,17 @@ select ~5;    #位取反，相当于取补码
 SELECT BIN(5);#查看数字二进制
 ```
 
-optimizer_trace可查看实际sql的执行，有时间研究一下
+### mysql唯一索引坑
 
-mysql优化
+假设唯一索引设置的字段可为Null，则多个null是不会冲突的
+
+在mysql 的innodb引擎中，是允许在唯一索引的字段中出现多个null值的。
+
+根据NULL的定义，NULL表示的是未知，因此两个NULL比较的结果既不相等，也不不等，结果仍然是未知。根据这个定义，多个NULL值的存在应该不违反唯一约束，所以是合理的，在oracel也是如此。
+
+### mysql优化
+
+optimizer_trace可查看实际sql的执行，有时间研究一下
 
 ```sql
 EXPLAIN SELECT
