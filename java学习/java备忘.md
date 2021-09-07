@@ -342,7 +342,7 @@ private class Itr implements Iterator<E> {
     }
 ```
 
-java迭代器接口
+#### java迭代器接口
 
 ```java
 public interface Iterator<E> {
@@ -360,7 +360,7 @@ public interface Iterator<E> {
 }
 ```
 
-使用示例
+#### 使用示例
 
 ```java
 public static void main(String[] args) {
@@ -389,6 +389,29 @@ public static void main(String[] args) {
 2:3 3
 3:5 5
 [0, 2, 4]
+```
+
+#### ListIterator用法
+
+```java
+public interface ListIterator<E> extends Iterator<E> {
+    //正序遍历
+    boolean hasNext();
+    E next();
+    int nextIndex();     //此方法返回调用 next() 函数时将返回的元素的索引
+    
+    //倒序遍历
+    boolean hasPrevious(); 
+    E previous();
+    int previousIndex(); //此方法返回调用 previous() 函数时将返回的元素的索引
+    
+    /*(说白了就是修改next()获取的元素)*/
+    void set(E e); //此方法将调用 next() 或 previous() 方法时返回的最后一个元素替换为指定的元素
+    /*(说白了就是在next()获取的元素后插入新元素)*/
+    void add(E e);
+    /*(说白了就是移除next()获取的元素)*/
+    void remove(); //此方法从调用 next() 或 previous() 方法元素时返回的列表中删除最后一个元素
+}
 ```
 
 ### jdk自带lambda备忘
