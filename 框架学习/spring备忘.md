@@ -45,3 +45,21 @@ public static Map<String, BeanCopier> beanCopierMap = new HashMap<>();
     }
 ```
 
+spring切面只能作用于spring bean的方法，不能识别普通方法
+
+spring切面作用的方法不是原对象的方法，而是代理后的方法，这意味着如果存在嵌套调用情况，内部的方法不会被切面识别到的
+
+可参考官网，官网的图描述的很清楚：https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#aop
+
+```java
+public class SimplePojo implements Pojo {
+
+    public void foo() {
+        // this next method invocation is a direct call on the 'this' reference
+        this.bar();//<=>bar(); 这种调用的是原对象不是代理，所以这种不会被切到
+    }
+
+    public void bar() {
+        // some logic...
+    }
+}

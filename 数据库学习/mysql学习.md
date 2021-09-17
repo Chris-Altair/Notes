@@ -46,6 +46,22 @@ select * from table1 where id in (3,1,2)
 SELECT * FROM table1 WHERE id IN (3,1,2) order by FIELD(id, 3,1,2);
 ```
 
+### mysql常用函数
+
+```mysql
+#length(s)-获取s长度
+select length('abc');  #return 3
+#trim(s)---s去除前后空格
+select trim(' aa a '); #return aa a
+#concat(str1,str2,...)---拼接字符串
+select concat('aa','-','bb'); # return aa-bb
+#find_in_set(str,strlist)
+##str 要查询的字符串
+##strList 字段名，参数以“,”分隔，如(1,2,6,8)
+##查询字段(strList)中包含的结果，返回结果null或记录。
+select find_in_set('b','a,b,c,d,e,f'); #return b
+```
+
 ### mysql常用命令
 
 ```sql
@@ -69,6 +85,8 @@ mysql进阶命令
 show engine innodb status;
 #显示用户正在运行的线程
 show processlist;
+#查看被锁的表
+show open tables where In_use>0;
 ```
 
 ### mysql  duplicate操作

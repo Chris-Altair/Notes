@@ -128,6 +128,8 @@ sed -n '5,8p' <filename>
 awk命令
 
 ```bash
+#'\''表示特殊字符"'",下面的命令相当于每行:data=>'data',
+awk '{print "'\''"$1"'\'',"}' <filename>
 ```
 
 ### 4.文件及目录权限操作
