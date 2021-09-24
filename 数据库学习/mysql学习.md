@@ -1,3 +1,53 @@
+### mysql建表备忘
+
+```mysql
+#设置自动增长列的初始值
+auto_incremenrt
+#较全的建表语句
+CREATE TABLE `table1` (
+  `table1_id` int NOT NULL AUTO_INCREMENT,
+  `table1_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1类 2类 0其它',
+  `table1_no` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '编码，必须唯一，可以系统生成',
+  `table1_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
+  `short_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '简称',
+  `alias` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '别名',
+  `spec_count` int NOT NULL DEFAULT '0' COMMENT '多规格个数',
+  `class_id` int NOT NULL DEFAULT '0' COMMENT '分类id,0表示无分类',
+  `brand_id` int NOT NULL DEFAULT '0' COMMENT '品牌ID',
+  `unit` smallint NOT NULL DEFAULT '0' COMMENT '基本单位',
+  `aux_unit` smallint NOT NULL DEFAULT '0' COMMENT '辅助单位',
+  `pinyin` varchar(40) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `origin` varchar(64) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '产地',
+  `remark` varchar(512) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `seller_id` int NOT NULL DEFAULT '-1' COMMENT '人员id',
+  `currency` varchar(40) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'CNY' COMMENT '币种',
+  `flag_id` smallint NOT NULL DEFAULT '0' COMMENT '标记',
+  `properties` varchar(1024) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0,0,0,0,0,0',
+  `prop1` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '自定义属性1',
+  `prop2` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '自定义属性2',
+  `prop3` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '自定义属性3',
+  `deleted` int NOT NULL DEFAULT '0' COMMENT '删除时间',
+  `version_id` int NOT NULL DEFAULT '0' COMMENT '版本号，用来检查同时修改的',
+  `modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`table1_id`),                         # 主键
+  UNIQUE KEY `UK_table1_no` (`table1_no`,`deleted`), # 唯一索引
+  KEY `FK_table1_class_id` (`class_id`),             # 常规索引
+  KEY `FK_table1_brand_id` (`brand_id`) USING BTREE, # 索引使用btree
+  KEY `IX_table1_type` (`goods_type`) ,
+  KEY `IX_table1_modified` (`modified`),
+  # 外键，若插入时table1_brand没有brand_id对应数据则报外键错误
+  CONSTRAINT `FK_table1_brand_id` FOREIGN KEY (`brand_id`) REFERENCES `table1_brand` (`brand_id`), 
+  CONSTRAINT `FK_table1_class_id` FOREIGN KEY (`class_id`) REFERENCES `table1_class` (`class_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='XX表';
+```
+
+### mysql字段类型备忘
+
+```mysql
+tinyint #占一个字节(8bit)
+```
+
 ### mysql json字段
 
 ```mysql
