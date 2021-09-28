@@ -139,6 +139,25 @@ show processlist;
 show open tables where In_use>0;
 ```
 
+### mysql常用语句备忘
+
+```mysql
+#删除重复数据
+--1.删除重复未启用的物理商，保留id最大的
+delete s1 from sys_logistics_provider s1 inner join sys_logistics_provider s2
+where s1.logistics_provider_id = s2.logistics_provider_id and (s1.is_active = 0 and s1.rec_id < s2.rec_id);
+--2.删除同时存在启用与未启用的物理商中未启用的
+delete s1 from sys_logistics_provider s1 inner join sys_logistics_provider s2
+where s1.logistics_provider_id = s2.logistics_provider_id and (s1.is_active <> s2.is_active and s1.is_active = 0);
+
+#复制表，将表sourceTable的结构及数据创建并复制到targetTable中
+--方式1
+CREATE TABLE targetTable LIKE sourceTable;
+INSERT INTO targetTable SELECT * FROM sourceTable;
+--方式2，更简洁
+CREATE TABLE targetTable AS (SELECT * FROM sourceTable);
+```
+
 ### mysql  duplicate操作
 
 ```mysql
