@@ -171,7 +171,7 @@ convert用法示例
 public void test(@ConvertWith(ToObjectArgumentConverter.class) GoodsSuiteParam param)
 ```
 
-多个测试参数的方法可参考官网的实例（如下），简单的参数类型可使用**@ValueSource**
+多个测试参数的方法可参考官网的实例（如下），简单的单参数类型可使用**@ValueSource**
 
 ```java
 @ParameterizedTest
@@ -189,6 +189,11 @@ static Stream<Arguments> stringIntAndListProvider() {
         arguments("lemon", 2, Arrays.asList("x", "y"))
     );
 }
+
+//简单多多参数可使用@CsvSource
+@ParameterizedTest
+@CsvSource({"sid1,account1,18888888888","sid2,account2,18888888888"})
+void testAccount(String sid, String account, String mobileNo){}
 ```
 
 ### 4.测试方法

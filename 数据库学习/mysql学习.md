@@ -77,6 +77,22 @@ and locate('btn_notmatched_look_data',functional_rights);
 select JSON_SET(functional_rights,'$.order_processing',json_merge(functional_rights->>'$.order_processing','"btn_notmatched_export_data"')) as a from cfg_right_group 
 where type = 0 and locate('btn_or_notmatched',functional_rights) and group_id = 655
 and locate('btn_notmatched_look_data',functional_rights);
+
+#若functional_rights中有platform_goods且为非空数组，则将其更新为新的数组
+update cfg_right_group set functional_rights = JSON_REPLACE(functional_rights, '$.platform_goods', JSON_ARRAY("btn_pg_pull_goods","btn_pg_auto_match_1","btn_pg_auto_match_2","btn_pg_auto_match_3","btn_pg_auto_match_4","btn_pg_auto_match_5","btn_pg_add_match_goods_1","btn_pg_add_match_goods_2","btn_pg_assgined_director_1","btn_pg_assgined_director_2","btn_pg_assgined_director_3","btn_pg_push_in_stock","btn_pg_update_pic","btn_pg_modify_match","btn_pg_del_match","btn_pg_manu_match")) where type = 0 and json_contains_path(functional_rights,'one','$.platform_goods') = 1 # 有platform_goods的key
+and json_length(functional_rights->'$.platform_goods') > 0; # 非空数组
+```
+
+json函数
+
+```mysql
+#判断json_doc中是否有feild1的key，有则返回1，没有则返回0
+##json_contains_path(json_doc, one_or_all, paths):json_doc顾名思义就是json数据；paths是指要找的key，可以传入多个的key参数；one_or_all指一个值是one表示找出paths参数中的任意一个，all表示找出全部
+json_contains_path(json_doc,'one','$.feild1') = 1
+#获取json_doc中的key为feild1的value
+json_doc->'$.feild1'
+#获取json_doc（key的数量）或array（array的数量）的长度
+json_length(json_doc)
 ```
 
 ### mysql默认排序规则
@@ -156,6 +172,9 @@ CREATE TABLE targetTable LIKE sourceTable;
 INSERT INTO targetTable SELECT * FROM sourceTable;
 --方式2，更简洁
 CREATE TABLE targetTable AS (SELECT * FROM sourceTable);
+
+#字符串查询区分大小写（关键在于BINARY）
+ALTER TABLE table1 modify column field1 VARCHAR(255) BINARY;
 ```
 
 ### mysql  duplicate操作
