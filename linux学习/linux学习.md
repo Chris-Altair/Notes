@@ -171,6 +171,7 @@ kill -15 <pid>
 ```bash
 #以 ASCII、十进制、十六进制或八进制显示文件内容
 hexdump -C <file> # -C : hex+ASCII
+xxd <file>
 ```
 
 ### *.目录栈操作

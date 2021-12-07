@@ -454,6 +454,21 @@ public enum RuleValidate {
 }
 ```
 
+### stream备忘
+
+```java
+//stream中添加元素的方法，concat：合并stream的方法
+//0加到头部，同理放后面表示追加到尾部
+Stream<Integer> intStream = Stream.of(1, 2, 3, 4, 5);
+Stream<Integer> newStream = Stream.concat(Stream.of(0), intStream);
+
+//判断是否流内所有元素都满足表达式
+boolean allMatch(Predicate<? super T> predicate);
+boolean anyMatch(Predicate<? super T> predicate);
+//判断是否流内没有元素都满足表达式
+boolean noneMatch(Predicate<? super T> predicate);
+```
+
 ### 枚举单例模式
 
 枚举单例模式，利用枚举特性保证单例和线程安全， 也是effective java 作者极力推荐的单例实现模式
