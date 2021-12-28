@@ -45,6 +45,8 @@ public static Map<String, BeanCopier> beanCopierMap = new HashMap<>();
     }
 ```
 
+------
+
 spring切面只能作用于spring bean的方法，不能识别普通方法
 
 spring切面作用的方法不是原对象的方法，而是代理后的方法，这意味着如果存在嵌套调用情况，内部的方法不会被切面识别到的
@@ -63,3 +65,34 @@ public class SimplePojo implements Pojo {
         // some logic...
     }
 }
+
+```
+
+------
+
+向同事学到了一手关于spring自动注入map的方式，还有这种操作
+
+```java
+public abstract class BaseService {
+}
+
+@Component("test_service1")
+public class Service1 extends BaseService {
+}
+
+@Component("test_service2")
+public class Service2 extends BaseService {
+}
+
+@Component
+public class CommonService {
+    //Map会自动注入进去,map = {"test_service1":service1,"test_service2":service2}
+    @Resource
+    private Map<String, BaseService> map;
+}
+```
+
+
+
+
+
