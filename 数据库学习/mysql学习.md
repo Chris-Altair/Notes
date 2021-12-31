@@ -398,3 +398,49 @@ explain分析sql的执行计划是相同的，通过navicat分析sql状态，
 3.  查数字     74192
 
 可见**查询不同的类型，返回的数据大小是有显著差异的**（字符串>>数字）及**查询部分还是所有的字段** 都**很大程度影响了sql的效率**，所以代码规范上有select尽量只差所需要的字段，避免查多余的字段
+
+------
+
+```mysql
+#强制使用索引IX_purchase_order_pws
+select * from `purchase_order` force index(IX_purchase_order_pws) where ...
+```
+
+------
+
+mysql in太多字段可能会不走索引
+
+```mysql
+#如下sql，如果in内的数量比较少则会走IX_purchase_order_pws(provider_id,warehouse_id,status)的索引，但当in内比较多的话，查询优化器可能会判断不使用该索引会更快，导致查询不走索引
+select * from purchase_order where provider_id in (...) and warehouse_id in () and status in ();
+```
+
+------
+
+分页优化，可以先根据条件分页查出主键作为临时表，然后主编关联临时表查询，这主要是利用分页原理是先查出所有的数据再丢掉前面的数据，只查id会极大地提示效率
+
+```mysql
+#分组后取最新一条
+SELECT
+	pol.type,
+	he.fullname,
+	pol.created 
+FROM
+	purchase_order_log pol
+	INNER JOIN (
+	SELECT
+		MAX( rec_id ) as rec_id
+	FROM
+		purchase_order_log 
+	WHERE
+		purchase_id = ? 
+		AND type IN ( ... ) 
+	GROUP BY
+	type 
+	) tmp using(rec_id);
+	
+#删除logistics_provider_id重复的数据，保留最新的（即id最大的）
+delete t1 from table_copy t1 inner join table_copy t2
+where t1.provider_id = t2.provider_id and t1.rec_id < t2.rec_id;
+```
+
