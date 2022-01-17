@@ -81,6 +81,12 @@ and locate('btn_notmatched_look_data',functional_rights);
 #若functional_rights中有platform_goods且为非空数组，则将其更新为新的数组
 update cfg_right_group set functional_rights = JSON_REPLACE(functional_rights, '$.platform_goods', JSON_ARRAY("btn_pg_pull_goods","btn_pg_auto_match_1","btn_pg_auto_match_2","btn_pg_auto_match_3","btn_pg_auto_match_4","btn_pg_auto_match_5","btn_pg_add_match_goods_1","btn_pg_add_match_goods_2","btn_pg_assgined_director_1","btn_pg_assgined_director_2","btn_pg_assgined_director_3","btn_pg_push_in_stock","btn_pg_update_pic","btn_pg_modify_match","btn_pg_del_match","btn_pg_manu_match")) where type = 0 and json_contains_path(functional_rights,'one','$.platform_goods') = 1 # 有platform_goods的key
 and json_length(functional_rights->'$.platform_goods') > 0; # 非空数组
+
+#如果json数组含有purchase_advise则移除,"one"表示查询到一个即返回，"all"表示查询所有
+#sql的含义就是JSON_SEARCH返回下表"$[4]"，JSON_UNQUOTE去除"返回$[4]，然后调用JSON_REMOVE移除数组内$[4]的元素
+UPDATE cfg_right_group
+SET router_rights = JSON_REMOVE(router_rights, JSON_UNQUOTE(JSON_SEARCH(router_rights, 'one', 'purchase_advise')))
+WHERE JSON_SEARCH(router_rights, 'one', 'purchase_advise') IS NOT NULL;
 ```
 
 json函数
@@ -93,6 +99,8 @@ json_contains_path(json_doc,'one','$.feild1') = 1
 json_doc->'$.feild1'
 #获取json_doc（key的数量）或array（array的数量）的长度
 json_length(json_doc)
+#去除val的引号
+JSON_UNQUOTE(val)
 ```
 
 ### mysql默认排序规则
