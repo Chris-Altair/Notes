@@ -87,6 +87,32 @@ and json_length(functional_rights->'$.platform_goods') > 0; # 非空数组
 UPDATE cfg_right_group
 SET router_rights = JSON_REMOVE(router_rights, JSON_UNQUOTE(JSON_SEARCH(router_rights, 'one', 'purchase_advise')))
 WHERE JSON_SEARCH(router_rights, 'one', 'purchase_advise') IS NOT NULL;
+
+#router_rights json数组里含有“purchase”则添加多个元素并去重，下面的sql相当于：1.合并数组 2.按数组元素转化为key为数组元素，value为空字符串的Json 3.提取json的key即为去重后的元素
+#该sql只支持mysql 8及以上
+update cfg_right_group set router_rights = (SELECT JSON_KEYS(JSON_OBJECTAGG(item, ""))
+FROM JSON_TABLE(json_merge_preserve(router_rights, JSON_ARRAY("purchase",
+			"purchase_management",
+			"purchase_plan",
+			"purchase_order",
+			"new_purchase_plan",
+			"new_1688_purchase_order",
+			"new_offline_purchase_order",
+			"purchase_order_detail",
+			"pull_1688_orders",
+			"purchase_advise_new",
+			"new_purchase_order",
+			"purchase_modules_setting",
+			"supplier_management",
+			"supplier_file",
+			"supply_relationship",
+			"new_supply_relationship",
+			"analyze_1688_link")), '$[*]'
+    COLUMNS(
+        item TEXT PATH '$'
+    )
+) as items) where type = 0 and json_contains(router_rights, concat('"',"purchase",'"'));
+
 ```
 
 json函数
@@ -174,6 +200,9 @@ where s1.logistics_provider_id = s2.logistics_provider_id and (s1.is_active = 0 
 delete s1 from sys_logistics_provider s1 inner join sys_logistics_provider s2
 where s1.logistics_provider_id = s2.logistics_provider_id and (s1.is_active <> s2.is_active and s1.is_active = 0);
 
+#按主单分组后，获取明细大于5条的最后5条明细id
+select substring_index(group_concat(rec_id order by rec_id desc),',',5) from purchase_order_detail GROUP BY purchase_id having count(*)>5
+
 #复制表，将表sourceTable的结构及数据创建并复制到targetTable中
 --方式1
 CREATE TABLE targetTable LIKE sourceTable;
@@ -213,7 +242,7 @@ SELECT BIN(5);#查看数字二进制
 
 根据NULL的定义，NULL表示的是未知，因此两个NULL比较的结果既不相等，也不不等，结果仍然是未知。根据这个定义，多个NULL值的存在应该不违反唯一约束，所以是合理的，在oracel也是如此。
 
-### mysql优化
+### mysql优化（可参考Oracle学习文档的sql优化，大体思路一致）
 
 optimizer_trace可查看实际sql的执行，有时间研究一下
 
@@ -225,60 +254,7 @@ EXPLAIN SELECT
 	`goods_spec`.`spec_code`,
 	`goods_spec`.`barcode`,
 	`goods_spec`.`spec_name`,
-	`goods_spec`.`is_allow_neg_stock`,
-	`goods_spec`.`is_not_need_examine`,
-	`goods_spec`.`is_sn_enable`,
-	`goods_spec`.`is_hotcake`,
-	`goods_spec`.`is_allow_zero_cost`,
-	`goods_spec`.`is_allow_lower_cost`,
-	`goods_spec`.`retail_price`,
-	`goods_spec`.`sale_score`,
-	`goods_spec`.`pack_score`,
-	`goods_spec`.`pick_score`,
-	`goods_spec`.`validity_days`,
-	`goods_spec`.`receive_days`,
-	`goods_spec`.`weight`,
-	`goods_spec`.`length`,
-	`goods_spec`.`width`,
-	`goods_spec`.`height`,
-	`goods_spec`.`washing_label`,
-	`goods_spec`.`tax_rate`,
-	`goods_spec`.`large_type`,
-	`goods_spec`.`unit`,
-	`goods_spec`.`aux_unit`,
-	`goods_spec`.`declare_name_cn`,
-	`goods_spec`.`declare_name_en`,
-	`goods_spec`.`declare_weight`,
-	`goods_spec`.`declare_price`,
-	`goods_spec`.`hs_code`,
-	`goods_spec`.`goods_property`,
-	`goods_spec`.`with_battery`,
-	`goods_spec`.`with_magnet`,
-	`goods_spec`.`is_powder`,
-	`goods_spec`.`is_liquid`,
-	`goods_spec`.`is_cosmetic`,
-	`goods_spec`.`is_solid`,
-	`goods_spec`.`is_paste`,
-	`goods_spec`.`is_danger`,
-	`goods_spec`.`is_metal`,
-	`goods_spec`.`ali_properties`,
-	`goods_spec`.`flag_id`,
-	`goods_spec`.`img_url`,
-	`goods_spec`.`img_key`,
-	`goods_spec`.`barcode_count`,
-	`goods_spec`.`plat_spec_count`,
-	`goods_spec`.`remark`,
-	`goods_spec`.`deleted`,
-	`goods_spec`.`prop1`,
-	`goods_spec`.`prop2`,
-	`goods_spec`.`prop3`,
-	`goods_spec`.`prop4`,
-	`goods_spec`.`prop5`,
-	`goods_spec`.`prop6`,
-	`goods_spec`.`cost`,
-	`goods_spec`.`version_id`,
-	`goods_spec`.`modified`,
-	`goods_spec`.`created`,
+	...
 	`goods_goods`.`currency`,
 	ifnull( cast( `goods_spec`.`cost` AS CHAR ), '成本缺失' ) AS `cost_str` 
 FROM
