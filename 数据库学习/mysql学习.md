@@ -428,3 +428,60 @@ delete t1 from table_copy t1 inner join table_copy t2
 where t1.provider_id = t2.provider_id and t1.rec_id < t2.rec_id;
 ```
 
+------
+
+大数据量范围查询优化
+
+```mysql
+#有个功能要查询1年的数据统计分析，使用下面的sql每次循环查2000条，trade_time是索引
+#性能问题，如果1年内查询数据过多的话，查询优化器可能不走索引(这点可通过force实现)，再加上当offset比较大时，每次都查出所有再筛选效率很低
+#时间监测发现，offset较大时每个sql都需要1分钟左右
+#原sql
+SELECT
+	sto.warehouse_id,
+	sto.spec_id,
+	sto.actual_num,
+	st.trade_time,
+FROM
+	sales_trade_order sto
+	LEFT JOIN sales_trade st ON sto.trade_id = st.trade_id 
+WHERE
+	 st.trade_time between { ts '2021-02-22 00:00:00.0' } and { ts '2022-02-22 00:00:00.0' }
+	 AND st.trade_status != 9 
+	 order by st.trade_time asc #使优化器走trade_time索引
+	 limit 2000 offset 
+#优化后的方案，下面的方式主要通过避免大offset的方式减少mysql压力
+1.查大于time1的前2000条记录
+list1:
+SELECT
+	sto.warehouse_id,
+	sto.spec_id,
+	sto.actual_num,
+	st.trade_time,
+	date_format( st.trade_time, '%Y-%m-%d' ) AS `trade_date` 
+FROM
+	sales_trade_order sto
+	LEFT JOIN sales_trade st ON sto.trade_id = st.trade_id 
+WHERE
+	 st.trade_time > time1 
+	 AND st.trade_status != 9 
+	order by st.trade_time asc
+	limit 2000
+2.取2000条中最后一条的trade_time作为time2
+list2:
+SELECT
+	sto.warehouse_id,
+	sto.spec_id,
+	sto.actual_num,
+	st.trade_time,
+	date_format( st.trade_time, '%Y-%m-%d' ) AS `trade_date` 
+FROM
+	sales_trade_order sto
+	LEFT JOIN sales_trade st ON sto.trade_id = st.trade_id 
+WHERE
+	 st.trade_time = time2
+	 AND st.trade_status != 9 
+3.list1、list2合并去重，然后业务逻辑计算
+4.time1 = time2 线程睡几百毫秒减少频率，重新循环，直到查到数据为空终止循环
+```
+
