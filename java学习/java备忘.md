@@ -508,3 +508,9 @@ public class SingletonDemo {
 }
 ```
 
+### BitSet使用
+
+```java
+位图，内部维护一个long[]数组，每个long占8个字节即64位，前[0,63]位放到long[0]中，如果大于64位则同理将大于的位数加到long[1]里，以此类推
+```
+

@@ -234,6 +234,13 @@ select ~5;    #位取反，相当于取补码
 SELECT BIN(5);#查看数字二进制
 ```
 
+### mysql查看实际执行语句
+
+```mysql
+1. EXPLAIN sql语句;
+2. SHOW WARNINGS
+```
+
 ### mysql唯一索引坑
 
 假设唯一索引设置的字段可为Null，则多个null是不会冲突的
