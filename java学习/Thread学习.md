@@ -184,3 +184,129 @@ ThreadLocal<Integer> ti = new ThreadLocal<>();
 ts.set("123");ti.set(1);
 ```
 
+## Runtime相关
+
+### 钩子函数addShutdownHook
+
+```java
+//看了下阿里巴巴创建链接池中调用了addShutdownHook，所以研究一下
+public SyncAPIClient createAPIClient(ClientPolicy policy, AuthorizationTokenStore authorizationTokenStore) {
+        SerializerProvider serializerProvider = this.initSerializerProvider();
+        final SyncAPIClient syncAPIClient = new SyncAPIClient(policy, serializerProvider, authorizationTokenStore);
+        syncAPIClient.start();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                if (syncAPIClient != null) {
+                    syncAPIClient.shutdown();
+                }
+            }
+        });
+        return syncAPIClient;
+    }
+```
+
+
+addShutdownHook钩子函数，在程序正常终止运行，会启用这个线程
+
+```java
+Runtime.getRuntime().addShutdownHook(Thread thread)
+```
+
+addShutdownHook方法会将线程塞入hooks里，ApplicationShutdownHooks部分源码如下
+
+```java
+private static IdentityHashMap<Thread, Thread> hooks;
+    private ApplicationShutdownHooks() {}
+
+    /* Add a new shutdown hook.  Checks the shutdown state and the hook itself,
+     * but does not do any security checks.
+     */
+    static synchronized void add(Thread hook) {
+        //校验方法省略。。。
+        //可见key和value都是传的线程
+        hooks.put(hook, hook);
+    }
+```
+
+IdentityHashMap与正常HashMap的区别在于HashMap是通过key的HashCode判断key，而IdentityHashMap是通过key的地址来判断
+
+```java
+//一个典型的例子，可见即使hash相同，map仍然有3个元素
+static class Key {
+        @Override
+        public int hashCode() {
+            return 1;
+        }
+    }
+    private static void testIdentityHashMap() {
+        IdentityHashMap<Object, Integer> map = new IdentityHashMap<>();
+        Key k1 = new Key();
+        Key k2 = new Key();
+        Key k3 = new Key();
+        map.put(k1,1);
+        map.put(k2,2);
+        map.put(k3,3);
+
+        System.out.println(map.get(k1));//1
+        System.out.println(map.get(k2));//2
+        System.out.println(map.get(k3));//3
+    }
+```
+
+至于为什么要使用IdentityHashMap。。。
+
+如果让我写，最自然的想法是使用list，有一个钩子就加一条，这样的问题是如果我加了两次同样的thread（地址相同），那就会执行两边，同样的线程显然不应该执行多次。
+
+所以我这个集合显然要有某种去重的机制，那我用HashSet（本质是hashMap）之类的？这些归根结底是通过thread的hashcode比较的，这样会存在什么问题呢？
+
+我个人觉得通过hashcode判断多此一举，实质上，我通过钩子函数创建线程执行逻辑，显然是我建了几个线程就要执行几个，依据应该是地址，而不应该通过hashcode来判断，更何况我可以继承线程类重新hashcode,如果写的有问题的话，还会存在丢失执行的问题，所以使用以地址为判断依据的IdentityHashMap就比较合理。
+
+那么如何执行传入的线程呢，答案在ApplicationShutdownHooks里
+
+```java
+static {
+        try {
+            //主程序shutdown会执行runHooks方法
+            Shutdown.add(1 /* shutdown hook invocation order */,
+                false /* not registered if shutdown in progress */,
+                new Runnable() {
+                    public void run() {
+                        runHooks();
+                    }
+                }
+            );
+            hooks = new IdentityHashMap<>();
+        } catch (IllegalStateException e) {
+            // application shutdown hooks cannot be added if
+            // shutdown is in progress.
+            hooks = null;
+        }
+    }
+
+/* Iterates over all application hooks creating a new thread for each
+     * to run in. Hooks are run concurrently and this method waits for
+     * them to finish.
+     */
+    static void runHooks() {
+        Collection<Thread> threads;
+        synchronized(ApplicationShutdownHooks.class) {
+            threads = hooks.keySet();
+            hooks = null;
+        }
+        for (Thread hook : threads) {
+            //并发执行
+            hook.start();
+        }
+        for (Thread hook : threads) {
+            while (true) {
+                try {
+                    //当前线程等待所有钩子线程执行完或抛出异常则退出
+                    hook.join();
+                    break;
+                } catch (InterruptedException ignored) {
+                }
+            }
+        }
+    }
+```
+

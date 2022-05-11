@@ -70,6 +70,12 @@ git checkout <current_branchname>
 git merge <branchname>
 git push origin <current_branchname>
 
+-------------------------rebase------------------------
+#rebase和merge的区别，rebase是相当于将current_branchname更新到最新，然后将本分支上的提交再“追加”上
+git checkout <current_branchname>
+git rebase <branchname>
+git push origin <current_branchname>
+
 -------------------------删除分支------------------------
 #1.删除本地分支
 git branch -d <branchname>

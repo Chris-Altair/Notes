@@ -492,3 +492,9 @@ WHERE
 4.time1 = time2 线程睡几百毫秒减少频率，重新循环，直到查到数据为空终止循环
 ```
 
+### for update
+
+```
+https://stackoverflow.com/questions/10935850/when-to-use-select-for-update#
+```
+

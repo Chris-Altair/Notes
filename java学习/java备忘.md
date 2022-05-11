@@ -464,9 +464,18 @@ Stream<Integer> newStream = Stream.concat(Stream.of(0), intStream);
 
 //判断是否流内所有元素都满足表达式
 boolean allMatch(Predicate<? super T> predicate);
+//是否存在满足条表达式的元素
 boolean anyMatch(Predicate<? super T> predicate);
 //判断是否流内没有元素都满足表达式
 boolean noneMatch(Predicate<? super T> predicate);
+
+//mergeFunction合并方法，mergeFunction包含两个参数，第一个是之前的结果，第二个是valueMapper执行后的结果
+//例如Collectors.toMap(OrderDTO::uniqueKey, orderDto -> 1, (result, count) -> result+count)
+//当出现key冲突时，result就是map.get的结果(之前的结果)，count就是valueMapper执行后的结果即count=1
+public static <T, K, U>
+    Collector<T, ?, Map<K,U>> toMap(Function<? super T, ? extends K> keyMapper,
+                                    Function<? super T, ? extends U> valueMapper,
+                                    BinaryOperator<U> mergeFunction)
 ```
 
 ### 枚举单例模式
