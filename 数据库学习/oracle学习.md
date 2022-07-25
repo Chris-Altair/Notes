@@ -818,6 +818,14 @@ select * from user tb1 left join level tb2 on tb1.id = tb2.user_id;
 > Show variables like 'join_buffer_size%'; -- 通过join_buffer_size参数可设置join buffer的大小
 > ```
 >
+> 会把驱动表实际使用的列都放到join buffer里（查询或者条件里涉及的都会使用到），驱动表的扫描次数
+>
+> ```
+> Scaninner_table = (RN * used_column_size) / join_buffer_size + 1
+> ```
+>
+> 所以可以提前分配join_buffer_size，尽可能减小扫描次数，最好为1
+>
 > 当level 表的 user_id 不为索引的时候，默认会使用Block Nested-Loop Join算法，**注意会根据条件和select的字段将数据放到join buffer中（so要加条件和减少select的字段以增大join buffer缓存的数据）**，匹配的过程类似下图
 
 ![](https://pic3.zhimg.com/80/v2-0e81dd7fe538f67559bc24c0a5a3207e_720w.jpg)
