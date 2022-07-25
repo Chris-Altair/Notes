@@ -523,3 +523,238 @@ public class SingletonDemo {
 位图，内部维护一个long[]数组，每个long占8个字节即64位，前[0,63]位放到long[0]中，如果大于64位则同理将大于的位数加到long[1]里，以此类推
 ```
 
+### Timer/TimerTask详解
+
+jdk自带的定时任务，支持一次性、周期、延时任务
+
+```java
+//简单的使用
+Timer timer = new Timer();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("executing now!");
+            }
+        };
+//1s后执行一次
+timer.schedule(task, 1000);
+```
+
+这块的代码简洁有趣，推荐仔细阅读
+
+首先列几个关键类
+
+- Timer 调度器
+- TaskQueue 任务队列，内部使用了二叉堆（推测是为了根据执行实际排序）
+- TimerTask 任务继承了runnable接口
+- TimerThread 执行任务的线程
+
+#### ①Timer构造函数
+
+先看Timer的构造函数，就是通过CAS生成线程名，然后启动实际执行任务的线程TimerThread ；还有其他的构造函数，区别是将线程设置为守护线程
+
+```java
+	//先看Timer的构造函数
+    private final static AtomicInteger nextSerialNumber = new AtomicInteger(0);
+    private static int serialNumber() {
+        return nextSerialNumber.getAndIncrement();
+    }
+    public Timer() {
+        this("Timer-" + serialNumber());
+    }
+    public Timer(String name) {
+        thread.setName(name);
+        thread.start();
+    }
+```
+
+#### ②TimerThread run方法
+
+由①可知：Timer创建后，就会启动执行任务的线程，那么我们先看一下该线程
+
+todo Object.wait方法需要仔细梳理下，官方推荐这东西似乎要放到同步+循环里使用
+
+**注意synchronized锁住一个对象，不代表对象的成员就不能修改**
+
+```java
+class TimerThread extends Thread {
+    /**
+     * 新任务是否能被调度
+     */
+    boolean newTasksMayBeScheduled = true;
+
+    /**
+     * 任务队列
+     */
+    private TaskQueue queue;
+
+    TimerThread(TaskQueue queue) {
+        this.queue = queue;
+    }
+
+    public void run() {
+        try {
+            mainLoop();
+        } finally {
+            // Someone killed this Thread, behave as if Timer cancelled
+            synchronized(queue) {
+                newTasksMayBeScheduled = false;
+                queue.clear();  // Eliminate obsolete references
+            }
+        }
+    }
+
+    /**
+     * The main timer loop.  (See class comment.)
+     */
+    private void mainLoop() {
+        while (true) {
+            try {
+                TimerTask task;
+                boolean taskFired; // 标记任务是否应该执行
+                synchronized(queue) {
+                    // Wait for queue to become non-empty
+                    // 创建Timer后还没加任务时，就会进到这里，执行线程就会陷入等待
+                    // Object.wait方法:让当前线程进入等待状态。直到其他线程调用此对象的 notify() 方法或 notifyAll() 方法
+                    // 并且wait方法释放queue的锁
+                    while (queue.isEmpty() && newTasksMayBeScheduled)
+                        queue.wait(); 
+                    if (queue.isEmpty())
+                        break; // Queue is empty and will forever remain; die
+
+                    // Queue nonempty; look at first evt and do the right thing
+                    long currentTime, executionTime;
+                    task = queue.getMin();
+                    synchronized(task.lock) {
+                        if (task.state == TimerTask.CANCELLED) {
+                            queue.removeMin();
+                            continue;  // No action required, poll queue again
+                        }
+                        currentTime = System.currentTimeMillis();
+                        executionTime = task.nextExecutionTime;
+                        // 当前时间戳 <= 计划执行时间戳 说明该任务需要执行
+                        if (taskFired = (executionTime<=currentTime)) {
+                            if (task.period == 0) { // Non-repeating, remove
+                                queue.removeMin(); //一次性任务，直接移除掉，队列重排序
+                                task.state = TimerTask.EXECUTED;
+                            } else { // Repeating task, reschedule
+                                queue.rescheduleMin( //周期性任务，重置执行时间，队列重排序
+                                  task.period<0 ? currentTime   - task.period
+                                                : executionTime + task.period);
+                            }
+                        }
+                    }
+                    if (!taskFired) // Task hasn't yet fired; wait
+                        // 最小时间的任务都不需要执行的话，直接等待，等待任务入队
+                        queue.wait(executionTime - currentTime); 
+                }
+                if (taskFired)  // Task fired; run it, holding no locks
+                    task.run(); //执行任务
+            } catch(InterruptedException e) {
+            }
+        }
+    }
+}
+```
+
+#### ③Timer.sched添加任务方法
+
+```java
+private void sched(TimerTask task, long time, long period) {
+        if (time < 0)
+            throw new IllegalArgumentException("Illegal execution time.");
+
+        // Constrain value of period sufficiently to prevent numeric
+        // overflow while still being effectively infinitely large.
+        if (Math.abs(period) > (Long.MAX_VALUE >> 1))
+            period >>= 1;
+
+        synchronized(queue) {
+            if (!thread.newTasksMayBeScheduled)
+                throw new IllegalStateException("Timer already cancelled.");
+
+            synchronized(task.lock) {
+                if (task.state != TimerTask.VIRGIN)
+                    throw new IllegalStateException(
+                        "Task already scheduled or cancelled");
+                task.nextExecutionTime = time;
+                task.period = period;
+                task.state = TimerTask.SCHEDULED;
+            }
+            // 队列添加任务，并重排序
+            queue.add(task);
+            if (queue.getMin() == task)
+                queue.notify(); // 添加的任务就是最小的任务，则唤醒执行线程
+        }
+    }
+```
+
+#### ④TaskQueue 堆实现
+
+最小堆，用于排序
+
+```java
+```
+
+#### ⑤其他有趣的地方
+
+Timer取消方法，清除taskQueue的全部任务，然后唤醒执行任务的线程，
+
+```java
+public void cancel() {
+        synchronized(queue) {
+            thread.newTasksMayBeScheduled = false;
+            queue.clear();
+            queue.notify();  // In case queue was already empty.
+        }
+    }
+notify会唤醒任务线程，之后任务线程的mainLoop会执行到下面的代码然后退出
+    if (queue.isEmpty())
+       break;
+```
+
+Timer有个成员，作用在于当timer没有被引用时，jvm回收会执行finalize方法，该threadReaper会优先于Timer的回收；
+
+主要是Timer的finalize很容易受到子类的影响，finalize忘记调用它。
+
+```java
+private final Object threadReaper = new Object() {
+        protected void finalize() throws Throwable {
+            synchronized(queue) {
+                thread.newTasksMayBeScheduled = false;
+                queue.notify(); // In case queue is empty.
+            }
+        }
+    };
+```
+
+对象没有引用时，jvm会回收掉对象，此时会执行finalize方法；测试发现，会优先回收对象的成员，然后再回收对象
+
+```java
+class Oo {
+        private Object o = new Object() {
+            @Override
+            protected void finalize() throws Throwable {
+                System.out.println("回收成员");
+            }
+        };
+
+        @Override
+        protected void finalize() throws Throwable {
+            System.out.println("回收类");
+        }
+    }
+
+    @Test
+    public void testFin() throws InterruptedException {
+        new Oo();
+        System.gc();
+    }
+输出：
+回收成员
+回收类
+```
+
+
+
+参考：https://juejin.cn/post/7044490907726544933#comment
