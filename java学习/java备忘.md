@@ -129,9 +129,11 @@ final JSONObject data = JSON.parseObject("@json")
 
 1. 内部类可以使用外部类的属性及方法（包括私有属性）
 
-2. 封装性
+2. 外部类可以调用内部类的方法（调用非静态内部类的方法需要先创建对象，静态内部类则直接类引用即可）
 
-3. 间接实现多重继承
+3. 封装性
+
+4. 间接实现多重继承
 
 ```java
 public class TestIterator {
@@ -140,6 +142,7 @@ public class TestIterator {
     private class InnerClass {
         public int cal() {
             //调用外部类私有属性，可避免属性名重复
+            // return value; 也可
             return TestIterator.this.value * 10;
         }
     }
@@ -162,7 +165,7 @@ public class TestIterator {
 System.arraycopy(src, 0, dest, 0, length)
 ```
 
-测试方法，测试复制接近8400万长度的byte[]，native方法平均15ms，for循环赋值19ms，从结果看貌似没强多少，但考虑到没固定环境比如堆内存之类的，只是粗糙测试，至少效率比for方式强。
+测试方法，简单测试复制接近8400万长度的byte[]，native方法平均15ms，for循环赋值19ms，从结果看貌似没强多少，但考虑到没固定环境比如堆内存之类的，只是粗糙测试，至少效率比for方式强。
 
 ```java
 public static void main(String[] args) throws IOException {
@@ -249,6 +252,12 @@ public <A extends Serializable & Closeable, V> void f(){}
 
 在编译期，编译器会先检查引用类型，再把泛型去掉，ArrayList<String>和ArrayList<Integer>在运行期的类型是相同的，并且通过反射是可以将不同类型的对象放到同一个List里的
 
+Java的泛型基本上都是在编译器这个层次上实现的，在生成的字节码中是不包含泛型中的类型信息的。
+
+继承泛型类使用了JVM桥方法，通过桥方法将重写的object继承方法转到具体泛型的重载的方法
+
+为什么要使用泛型擦除呢？是为了保证兼容性（老版本的代码在新版本环境仍可执行）
+
 参考：https://www.cnblogs.com/hongdada/p/13993251.html
 
 在《Effective Java》给出过一个十分精炼的回答：**producer-extends, consumer-super（PECS）**。
@@ -282,7 +291,9 @@ public static <T> void copy(List<? super T> dest, List<? extends T> src) {
 
 **特点：轻量级对象；支持在遍历内删除元素**
 
-以ArrayList为参考，ArrayList在通过迭代器遍历时，不允许在原list上增删元素（但可以通过迭代器的remove方法删除），因为增删操作会修modCount，迭代器next、remove方法操作前会校验modCount是否改变，改变则抛出ConcurrentModificationException
+以ArrayList为参考，ArrayList在通过迭代器遍历时，不允许在原list上增删元素（但可以通过迭代器的remove方法删除，实际上创建迭代器后就不能删除，因为创建迭代器后expectedModCount已经固定了），因为增删操作会修modCount，迭代器next、remove方法操作前会校验modCount是否改变，改变则抛出ConcurrentModificationException
+
+从源码可见，每个remove调用前，一定要先调用next方法,不然lastRet=-1直接抛出异常
 
 ```java
 private class Itr implements Iterator<E> {
@@ -296,6 +307,7 @@ private class Itr implements Iterator<E> {
             return cursor != size;
         }
 
+    	// Object n = next()方法调用后，cursor其实是下一个元素的index，lastRet是n的index
         @SuppressWarnings("unchecked")
         public E next() {
             checkForComodification();//操作前都会校验list是否增删
@@ -316,8 +328,7 @@ private class Itr implements Iterator<E> {
 
             try {
                 ArrayList.this.remove(lastRet);
-                //个人理解，可能有误
-                //删除元素后根据下一个元素的位置重置迭代器，保证remove操作不会干扰迭代器遍历
+                //删除元素后根据当前元素的位置重置迭代器，保证remove操作不会干扰迭代器遍历
                 //即删除元素后，从下个元素开始遍历
                 cursor = lastRet;
                 lastRet = -1;

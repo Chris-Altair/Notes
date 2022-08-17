@@ -779,7 +779,9 @@ select *
 > 		同时在匹配表（row source 2）的连接操作关联列上建立唯一索引（UNIQUE INDEX）或是选择性较好的非唯一索引，此时嵌套循环连接的执行效率会变得很高。
 > 		若驱动表返回的行数较多，即使匹配表连接操作关联列上存在索引，连接效率也不会很高。
 
-**mysql join算法** `参考`：https://zhuanlan.zhihu.com/p/54275505
+**mysql join算法** 
+
+`参考`：https://zhuanlan.zhihu.com/p/54275505 https://blog.csdn.net/qq_27529917/article/details/87904179
 
 ```sql
 --示例sql：
@@ -889,7 +891,6 @@ select * from user tb1 left join level tb2 on tb1.id = tb2.user_id;
 # 五、复杂sql示例
 
 ```sql
---驻外使领馆受理单位用户权限数据（已完成）
 insert into CSC3TEST.FANJC_AM_PRO_MAG_PERMISSION
   (ID,
    USER_ID,
@@ -945,8 +946,6 @@ insert into CSC3TEST.FANJC_AM_PRO_MAG_PERMISSION
                          AND r.CODE = 'accept-unit-project-leader-school'
                          AND length(tu.id) < 32)
 
-
---非驻外使领馆的受理单位工作人员用户权限数据（已完成）
 insert into CSC3TEST.FANJC_AM_PRO_MAG_PERMISSION
   (ID,
    USER_ID,

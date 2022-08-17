@@ -192,7 +192,7 @@ show open tables where In_use>0;
 ### mysql常用语句备忘
 
 ```mysql
-#删除重复数据
+#删除重复数据，类似的在同一个表中找存在关联的某几条也可以用这种“自己连自己”的方式，例如同一个表中找量相加为0的两条记录
 --1.删除重复未启用的物理商，保留id最大的
 delete s1 from sys_logistics_provider s1 inner join sys_logistics_provider s2
 where s1.logistics_provider_id = s2.logistics_provider_id and (s1.is_active = 0 and s1.rec_id < s2.rec_id);
@@ -247,7 +247,7 @@ SELECT BIN(5);#查看数字二进制
 
 在mysql 的innodb引擎中，是允许在唯一索引的字段中出现多个null值的。
 
-根据NULL的定义，NULL表示的是未知，因此两个NULL比较的结果既不相等，也不不等，结果仍然是未知。根据这个定义，多个NULL值的存在应该不违反唯一约束，所以是合理的，在oracel也是如此。
+根据NULL的定义，NULL表示的是未知，因此两个NULL比较的结果既不相等，也不不等，结果仍然是未知。根据这个定义，多个NULL值的存在应该不违反唯一约束，所以是合理的，在oracle也是如此。
 
 ### mysql优化（可参考Oracle学习文档的sql优化，大体思路一致）
 
@@ -354,7 +354,7 @@ ORDER BY  gs.spec_no ASC LIMIT 50;
 优化方式：采用临时表方式，先缩短主表数量后，再左连接附表
 
 ```sql
-#优化后sql,只需几十-几百毫秒
+#优化后sql,只需几十毫秒
 SELECT t.spec_id
 FROM 
     (SELECT gs.spec_id,
@@ -496,5 +496,54 @@ WHERE
 
 ```
 https://stackoverflow.com/questions/10935850/when-to-use-select-for-update#
+```
+
+关于大事务的问题，写的挺好
+
+```
+https://cloud.tencent.com/developer/article/1595282
+```
+
+### mysql 字符串比较
+
+mysql字符串比较是按字符串顺序比较，第一位相同，才比较第二位,所以
+
+```mysql
+select '10'>'5'; -- 0;
+select 10>5; --1;
+```
+
+### mysql  buffer pool命中率计算
+
+对应给定sql的优化思路大概是索引->连接池->buffer pool
+
+```mysql
+show status like 'Innodb_buffer_pool_%'; -- 查看buffer pool相关信息
++---------------------------------------+--------------------------------------------------+
+| Variable_name                         | Value                                            |
++---------------------------------------+--------------------------------------------------+
+| Innodb_buffer_pool_dump_status        | Dumping of buffer pool not started               |
+| Innodb_buffer_pool_load_status        | Buffer pool(s) load completed at 211116  0:10:23 |
+| Innodb_buffer_pool_resize_status      |                                                  |
+| Innodb_buffer_pool_pages_data         | 386045                                           |
+| Innodb_buffer_pool_bytes_data         | 6324961280                                       |
+| Innodb_buffer_pool_pages_dirty        | 15797                                            |
+| Innodb_buffer_pool_bytes_dirty        | 258818048                                        |
+| Innodb_buffer_pool_pages_flushed      | 353780304                                        |
+| Innodb_buffer_pool_pages_free         | 7170                                             |
+| Innodb_buffer_pool_pages_misc         | 1                                                |
+| Innodb_buffer_pool_pages_total        | 393216                                           |
+| Innodb_buffer_pool_read_ahead_rnd     | 0                                                |
+| Innodb_buffer_pool_read_ahead         | 63706450                                         |
+| Innodb_buffer_pool_read_ahead_evicted | 24736                                            |
+| Innodb_buffer_pool_read_requests      | 2360744346880                                    |
+| Innodb_buffer_pool_reads              | 1339874954                                       |
+| Innodb_buffer_pool_wait_free          | 260                                              |
+| Innodb_buffer_pool_write_requests     | 50785935057                                      |
++---------------------------------------+--------------------------------------------------+
+Innodb_buffer_pool_read_requests表示读请求的次数。
+Innodb_buffer_pool_reads 表示从物理磁盘中读取数据的请求次数。
+命中率=[1-(Innodb_buffer_pool_reads/Innodb_buffer_pool_read_requests)]*100%
+一般情况下buffer pool命中率都在99%以上，如果低于这个值，才需要考虑加大innodb buffer pool的大小。
 ```
 
