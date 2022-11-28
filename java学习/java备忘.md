@@ -459,8 +459,6 @@ BiPredicate<T, U> <=> (T, U)->boolean //二元判断
 BiConsumer<T, U> <=> (T, U)->void //二元消费者    
 ```
 
-
-
 学到了一手，枚举还可以这样用
 
 ```java
