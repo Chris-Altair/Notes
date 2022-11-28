@@ -45,6 +45,18 @@ List<String> emptyList = Collections.emptyList();
 
 java方法是参数是赋值操作（基本类型赋值，对象赋给地址），jvm每个线程有自己的stack（所以各个线程调用方法内部的局部变量是不会互相干扰的），所有线程的对象存到heap，java方法的局部变量（基本类型和对象地址）存到栈内，java方法栈大小编译期就能计算好
 
+### synchronized String骚操作
+
+看了看朋友的代码，将字符串字符串对应的常量池对象作为锁，利用intern方法保证了相同字符串的唯一性，很巧妙的做法
+
+```java
+void method(String key) {
+    synchronized(key.intern()) {
+        //...
+    }
+}
+```
+
 ### Optional用法
 
 Optional最经典的null-safe get chain
@@ -435,7 +447,19 @@ Predicate<T> <=> T -> boolean
 predicate.test(T t)
 //支持and、or等逻辑表达式
 predicate1.or(predicate2).test("Hello world")
+
+//其他的常用函数式接口
+Function<T, R> <=> T->R //一元函数
+UnaryOperator<T> <=> T->T //特殊的一元函数
+Supplier<T> <=> ()->T //生产者
+Consumer<T> <=> T->void //消费者
+
+BiFunction<T, U, R> <=> (T, U)->R //二元函数
+BiPredicate<T, U> <=> (T, U)->boolean //二元判断
+BiConsumer<T, U> <=> (T, U)->void //二元消费者    
 ```
+
+
 
 学到了一手，枚举还可以这样用
 
@@ -705,6 +729,7 @@ private void sched(TimerTask task, long time, long period) {
 最小堆，用于排序
 
 ```java
+
 ```
 
 #### ⑤其他有趣的地方
