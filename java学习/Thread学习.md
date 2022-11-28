@@ -1,8 +1,10 @@
 [TOC]
 
-## 非静态方法
+## Thread类方法
 
-### *setDaemon()*
+### 1.非静态方法
+
+#### *setDaemon()*
 
 *setDaemon*方法：将线程设置为守护线程
 
@@ -35,7 +37,7 @@ Thread thread = new Thread(() -> {
         thread.start();
 ```
 
-### *interrupt（）*
+#### *interrupt（）*
 
 *interrupt*方法：将线程的中断标识设置为*true*
 
@@ -76,9 +78,29 @@ thread.start();
 thread.interrupt();
 ```
 
-## 静态方法
+#### *join()*
 
-### *interrupted()*
+作用：主线程等待该线程结束。
+
+ Join方法实现是通过wait（Object 提供的方法）。 当main线程调用t.join时候，main线程会获得线程对象t的锁（wait 意味着拿到该对象的锁),调用该对象的wait(等待时间)，直到该对象唤醒main线程 ，比如退出后。这就意味着main 线程调用t.join时，必须能够拿到线程t对象的锁。 
+
+如果t执行执行过程中抛出Exception，t.join()后的代码仍会执行
+
+若main方法中断，不会影响t线程的执行
+
+```java
+main() {
+    Thread t = new Thread();
+    t.start();
+    t.join();
+    //当t线程执行完或者t抛出异常后，才会执行main后续的逻辑
+    ...
+}
+```
+
+### 2.静态方法
+
+#### *interrupted()*
 
 *Thread.interrupted()*方法做两件事:
 
@@ -92,7 +114,7 @@ public static boolean interrupted() {
     }
 ```
 
-### *sleep(ms)*
+#### *sleep(ms)*
 
 *Thread.sleep(ms)*，当前线程变为***TIMED_WAITING***状态，等待时间单位为ms（超时等待，超时后会自动唤醒）
 
