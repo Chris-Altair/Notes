@@ -173,11 +173,12 @@ public class TestIterator {
 ### 高效复制数组方法
 
 ```java
+Arrays.copyOf()
 //native方法
 System.arraycopy(src, 0, dest, 0, length)
 ```
 
-测试方法，简单测试复制接近8400万长度的byte[]，native方法平均15ms，for循环赋值19ms，从结果看貌似没强多少，但考虑到没固定环境比如堆内存之类的，只是粗糙测试，至少效率比for方式强。
+测试方法，简单测试复制接近8400万长度的byte[]，native方法平均15ms，for循环赋值19ms，考虑到没固定环境比如堆内存之类的，只是粗糙测试，效率比for方式强。
 
 ```java
 public static void main(String[] args) throws IOException {
@@ -298,6 +299,14 @@ public static <T> void copy(List<? super T> dest, List<? extends T> src) {
 ```
 
 参考：https://cloud.tencent.com/developer/article/1649866
+
+### ArrayList vs LinkedList
+
+LinkedList的作者都说没用过LinkedList。。。
+
+事实上由于现代计算机结构，ArrayList效率远高于LinkedList，并且对较大的列表而言，LinkedList消耗的空间大概是ArrayList的4-6倍，所以任何情况下都应该使用ArrayList，若你想使用stack\queue\deque，那也应该使用ArrayDeque而不是LinkedList。
+
+ps: `new ArrayList<>()`和`new ArrayList<>(0)`得到的列表的扩容方式是不同的，显式传入0会遵循1.5倍扩容原则1->2->3->4->5->6...，若不传则第一次add默认扩充为10，所以如果列表经常为空或者只放一两个元素，`new ArrayList<>(0)`会省点内存
 
 ### 迭代器
 
