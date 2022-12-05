@@ -137,6 +137,10 @@ final JSONObject data = JSON.parseObject("@json")
                 .orElse(data.getString("Remark"));
 ```
 
+### protected
+
+`private`属性或方法子类是没法访问，所以当你希望子类可以访问并且又不希望外界可以随意访问，就可以使用`protected`，这样就只有子类和包内的类可以访问
+
 ### 内部类使用好处
 
 1. 内部类可以使用外部类的属性及方法（包括私有属性）
