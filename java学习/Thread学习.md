@@ -281,7 +281,9 @@ static class Key {
 
 所以我这个集合显然要有某种去重的机制，那我用HashSet（本质是hashMap）之类的？这些归根结底是通过thread的hashcode比较的，这样会存在什么问题呢？
 
-我个人觉得通过hashcode判断多此一举，实质上，我通过钩子函数创建线程执行逻辑，显然是我建了几个线程就要执行几个，依据应该是地址，而不应该通过hashcode来判断，更何况我可以继承线程类重新hashcode,如果写的有问题的话，还会存在丢失执行的问题，所以使用以地址为判断依据的IdentityHashMap就比较合理。
+~~我个人觉得通过hashcode判断多此一举，实质上，我通过钩子函数创建线程执行逻辑，显然是我建了几个线程就要执行几个，依据应该是地址，而不应该通过hashcode来判断，更何况我可以继承线程类重新hashcode,如果写的有问题的话，还会存在丢失执行的问题，所以使用以地址为判断依据的IdentityHashMap就比较合理。~~
+
+Thread沒有实现hashCode方法，所以使用了IdentityHashMap
 
 那么如何执行传入的线程呢，答案在ApplicationShutdownHooks里
 
