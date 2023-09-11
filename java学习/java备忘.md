@@ -845,6 +845,25 @@ class Oo {
 回收类
 
 ```
+### Random类
+
+每次需要随机值时创建一个新的 Random 对象效率很低，并且可能会产生非随机的数字，具体取决于 JDK。 为了获得更好的效率和随机性，请创建一个 Random，存储它并重用它。
+
+推荐使用
+
+```java
+SecureRandom.getInstanceStrong()
+```
+
+`Random`是线程安全的，可供多个线程使用。但如果多个线程使用同一个实例`Random`，则多个线程共享同一个种子。它会导致多个线程之间的争用，从而导致性能下降。
+
+`ThreadLocalRandom`是上述问题的解决方案。`ThreadLocalRandom`每个线程都有一个`Random`实例并防止争用。
+
+```java
+ThreadLocalRandom.current()
+```
+
+### 
 
 
 
