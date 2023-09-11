@@ -845,6 +845,8 @@ class Oo {
 回收类
 
 ```
+参考：https://juejin.cn/post/7044490907726544933#comment
+
 ### Random类
 
 每次需要随机值时创建一个新的 Random 对象效率很低，并且可能会产生非随机的数字，具体取决于 JDK。 为了获得更好的效率和随机性，请创建一个 Random，存储它并重用它。
@@ -864,7 +866,3 @@ ThreadLocalRandom.current()
 ```
 
 ### 
-
-
-
-参考：https://juejin.cn/post/7044490907726544933#comment
