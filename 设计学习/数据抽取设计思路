@@ -56,6 +56,21 @@ ps：批次的处理实现是使用**垂直**（每个批次链式调用）还�
 
 线程数的设置一般跟处理器核数成**正比**关系。
 
+```java
+//看到有专门干数据抽取的开发是这么写的，先把数据都查出来，然后用CountDownLatch控制任务都执行完，也算是一种思路吧
+CountDownLatch latch = new CountDownLatch(batchSize);
+threadPoolExecutor.execute(()->{
+    try {
+        //batchInsert
+    } catch(Exception e) {
+        
+    } finally {
+        latch.countDown();
+    }
+});
+latch.await();
+```
+
 ### ⑤ 异常处理
 
 **异常处理**也很关键，如果某个批次处理出现错误了，不应该影响其他批次，这也是使用多线程的原因；此外若某个批次出现错误，则需要记录这批出错的数据，以便人工排查，例如可以考虑记录到错误表中，或者写到某个文件中。
