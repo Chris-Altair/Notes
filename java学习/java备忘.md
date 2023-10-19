@@ -845,6 +845,7 @@ class Oo {
 回收类
 
 ```
+
 参考：https://juejin.cn/post/7044490907726544933#comment
 
 ### Random类
@@ -865,4 +866,14 @@ SecureRandom.getInstanceStrong()
 ThreadLocalRandom.current()
 ```
 
-### 
+### 使用UrlClassLoader动态加载jar包
+
+众所周知，项目最后打jar包后，只会保留同一个引用的依赖，这正常来说是没问题的，但当需要集成外部sdk的时候（尤其是涉及到加密bcprov包的时候），可能会出现项目中需要同时引用同一个包的多个版本的情况。可通过如下方式引用
+
+```java
+File file = new File(jar文件全路径);   
+URL url = file.toURI().toURL(); 
+URLClassLoader loader = new URLClassLoader(new URL[] { url });   
+Class  tidyClazz = loader.loadClass(所需class的含包名的全名);
+//拿到class后，后续通过反射调用方法
+```
