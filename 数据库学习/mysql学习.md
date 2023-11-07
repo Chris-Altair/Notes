@@ -203,6 +203,9 @@ where s1.logistics_provider_id = s2.logistics_provider_id and (s1.is_active <> s
 #按主单分组后，获取明细大于5条的最后5条明细id
 select substring_index(group_concat(rec_id order by rec_id desc),',',5) from purchase_order_detail GROUP BY purchase_id having count(*)>5
 
+#联表更新
+update t1 left join t1.id=t2.id set t.a=t2.a, t.b=t2.b where t1.id = ...
+
 #复制表，将表sourceTable的结构及数据创建并复制到targetTable中
 --方式1
 CREATE TABLE targetTable LIKE sourceTable;
