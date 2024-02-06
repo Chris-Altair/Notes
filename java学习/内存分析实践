@@ -1,0 +1,9 @@
+记一次生产环境遇到的告警问题分析
+
+首先从生产环境拿下dump文件（jmap），然后使用mat工具分析，发现老年代占用节节攀升，已经处于打满的状态了，然后执行leak suspects，发现
+
+java.util.jar.JarFile已经占用了接近300MB左右（30%。最大堆内存是1G），点击对象，通过with incoming references查看jarFile被谁引用，注意到JarClassLoader，继续追踪引用，发现InitWrap.init方法。通过查看项目代码最终确认了内存告警原因：
+
+init方法为三方提供的sdk包，内部实现了自己的classLoader，然后通过反射初始化jar包里的Method类，目的是从外部加载国密算法包（避免项目里引用的同坐标但版本不同的jar包），这没什么问题，出问题的地方是每次三方调用接口都会执行init方法，内部回不断地从服务器本地读取jar包，调用接口的次数多了，就导致jarFile越来越多。
+
+建议修复方式：项目启动后执行初始化init方法，不再每次调接口都执行
