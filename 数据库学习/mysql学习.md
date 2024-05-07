@@ -560,3 +560,15 @@ Innodb_buffer_pool_reads 表示从物理磁盘中读取数据的请求次数。
 - 已提交读（避免脏读，但能读到其他事务已提交的数据（不可重复读））
 - 可重复读（默认，可避免脏读和不可重复读，但不能避免幻读）
 - 单机串行（最高级别）
+
+### mysql last_insert_id()
+
+ 在使用MySQL时，若表中含自增字段（auto_increment类型），则向表中insert一条记录后，可以调用last_insert_id()来获得最近insert的那行记录的自增字段值 
+
+```mysql
+insert into table (...) value (...);
+-- 返回上一条insert自增的id
+select last_insert_id();
+```
+
+ last_insert_id()的值是由MySQL server来维护的，而且是为**每条连接**维护独立的值，也即，某条连接调用last_insert_id()获取到的值是这条连接最近一次insert操作执行后的自增值，该值不会被其它连接的sql语句所影响。这个行为保证了不同的连接能正确地获取到它最近一次insert sql执行所插入的行的自增值，也就是说，**last_insert_id()的值不需要通过加锁或事务机制来保证其在多连接场景下的正确性**。 
