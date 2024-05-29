@@ -331,10 +331,11 @@ curl
 curl http://example.com
 #常用参数
 -X #可接http请求类型，如: -X POST
--H #可接请求头，如: -H 'Content-Type: application/json'
+-H #可接请求头，如: -H 'Content-Type: application/json' -H 'Host: 192.168.1.199:4399'
 -d #可接POST请求体，如: -d '{"username":"Alice","pwd":"123456"}' 或也可读取文件: -d '@data.json'
 -k #不校验ssl证书
 -v #查看详细信息
+--tls-max #指定tls版本如： --tls-max 1.2
 ```
 
 wget可用于下载文件
