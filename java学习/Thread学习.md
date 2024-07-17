@@ -132,7 +132,7 @@ threadLocal线程缓存，可以在线程内共享变量，对不同线程隔离
 ThreadLocal.ThreadLocalMap threadLocals = null;
 ```
 
-threadLocal的源码
+### threadLocal的源码
 
 ```java
 public void set(T value) {
@@ -205,6 +205,103 @@ ThreadLocal<Integer> ti = new ThreadLocal<>();
 //这两个set都是放到当前thread的threadLocals里
 ts.set("123");ti.set(1);
 ```
+
+### 开放寻址法
+
+threadLocal内存储键值对不是使用类似链接法解决冲突的hashMap，而是使用**开放寻址法**。
+
+每一个ThreadLocal对象会有一个唯一的threadLocalHashCode，这个threadLocalHashCode初始为0，每新建一个对象threadLocalHashCode就加上HASH_INCREMENT。
+
+官方认为：threadLocalHashCode这是一个自定义哈希码（仅在 ThreadLocalMaps 中有用），在连续构造的 ThreadLocals 由相同线程使用的情况下，它可以消除冲突，而在不太常见的情况下，它仍能保持良好的行为。
+
+使用开放寻址的好处（个人思考）：核心是**节省空间**
+
+- 将同一个线程内的ThreadLocal都存到一个长度为2的幂的数组中，结构简单，节省并且便于回收空间（每个槽只有一个元素，没有链表，自然也不需要回收链表）
+- 就实际使用场景来说，相对于常规的hashMap，同一个线程缓存存储的不同ThreadLocal不会很多（对项目来说往往是常数级），装载因子（实际元素数n/槽数m）小于1，更适用于使用开放寻址来节约空间
+- 作为键的ThreadLocal的hashCode是自定义的、仅本身使用的，不像hashMap的key完全是不明的，因而可以因地制宜地设计出合适的hash算法来避免冲突（使用线性探查），有利于避免开放寻址不适用于频繁冲突的情况
+
+```java
+public class ThreadLocal<T> {
+    /**
+     * ThreadLocals rely on per-thread linear-probe hash maps attached
+     * to each thread (Thread.threadLocals and
+     * inheritableThreadLocals).  The ThreadLocal objects act as keys,
+     * searched via threadLocalHashCode.  This is a custom hash code
+     * (useful only within ThreadLocalMaps) that eliminates collisions
+     * in the common case where consecutively constructed ThreadLocals
+     * are used by the same threads, while remaining well-behaved in
+     * less common cases.
+     */
+    private final int threadLocalHashCode = nextHashCode();// 每个对象唯一的hashCode
+
+    /**
+     * The next hash code to be given out. Updated atomically. Starts at
+     * zero.
+     */
+    private static AtomicInteger nextHashCode =
+        new AtomicInteger();
+
+    /**
+     * The difference between successively generated hash codes - turns
+     * implicit sequential thread-local IDs into near-optimally spread
+     * multiplicative hash values for power-of-two-sized tables.
+     */
+    // HASH_INCREMENT=(2^32-1)*黄金分割比例 再去掉负号
+    private static final int HASH_INCREMENT = 0x61c88647;
+
+    /**
+     * Returns the next hash code.
+     */
+    private static int nextHashCode() {
+        return nextHashCode.getAndAdd(HASH_INCREMENT);
+    }
+    
+    /**
+         * Set the value associated with key.
+         *
+         * @param key the thread local object
+         * @param value the value to be set
+         */
+        private void set(ThreadLocal<?> key, Object value) {
+
+            // We don't use a fast path as with get() because it is at
+            // least as common to use set() to create new entries as
+            // it is to replace existing ones, in which case, a fast
+            // path would fail more often than not.
+			//例如一个线程内你new了3个threadLocal对象，那么这个tab实际上就会有3个不为空的元素
+            Entry[] tab = table;//数组长度是2的幂
+            int len = tab.length;
+            // 保证i在[0,len-1]的范围内
+            int i = key.threadLocalHashCode & (len-1);//<=> hash mod (len-1)
+		   // 开放寻址
+            for (Entry e = tab[i];
+                 e != null;
+                 e = tab[i = nextIndex(i, len)]) {//实际上是线性探查
+                ThreadLocal<?> k = e.get();
+				//这是给同一个ThreadLocal对象设置value的情况，设置完就直接return了
+                if (k == key) {
+                    e.value = value;
+                    return;
+                }
+				//这块会有个较复杂的类似清理的操作，还没细看
+                if (k == null) {
+                    replaceStaleEntry(key, value, i);
+                    return;
+                }
+            }
+			//到这说明tab内槽i为空，直接填充
+            tab[i] = new Entry(key, value);
+            int sz = ++size;
+            if (!cleanSomeSlots(i, sz) && sz >= threshold)
+                rehash();
+        }
+    private static int nextIndex(int i, int len) {
+            return ((i + 1 < len) ? i + 1 : 0);//线性探查
+        }
+}
+```
+
+
 
 ## Runtime相关
 
@@ -333,6 +430,7 @@ static {
         }
     }
 ```
+
 ## wait和notify
 
 wait和notify必须在同步代码块使用，wait会释放当前持有锁的线程释放锁并进入等待状态，notify会唤醒一个等待的线程（不一定是随机的，跟jvm实现有关， jdk1.8, hotspot是按**先入先出**实现的）**但并不会释放锁**，只有执行wait或者执行完该锁的同步代码块后才会释放锁，并且**唤醒的线程也只有抢到锁后才会真正执行**
