@@ -89,6 +89,14 @@ git push --delete origin xxx
 git branch -m xxx yyy
 #3.推送分支到远程
 git push origin yyy
+
+-------------------------撤回已push的merge------------------------
+#1.切到要撤回的分支
+#2.找到这次merge的commit id（随机字符串）
+git log -1
+#3.撤回merge提交， -m 1表示当前所处的分支为主分支
+git revert <commit id> -m 1
+#4.shift+zz保存
 ```
 
 ### 3. https切换git提交
@@ -114,4 +122,3 @@ git push -u origin main
 #5.测试切换是否成功
 ssh -T git@github.com
 ```
-
